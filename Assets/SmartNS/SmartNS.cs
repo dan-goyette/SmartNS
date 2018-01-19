@@ -13,8 +13,6 @@ namespace GraviaSoftware.SmartNS
     public class SmartNS : UnityEditor.AssetModificationProcessor
     {
 
-
-
         #region Asset Creation
 
         /// <summary>
@@ -46,62 +44,11 @@ namespace GraviaSoftware.SmartNS
                 }
 
                 // Generate the namespace.
-                string namespaceValue = "";
-
-                if ( string.IsNullOrEmpty( universalNamespacePreference ) || string.IsNullOrEmpty( universalNamespacePreference.Trim() ) ) {
-                    // We're not using a Universal namespace. So, generate the smart namespace.
-                    namespaceValue = path;
-
-                    // TODO: Do we need something else for Mac?
-                    var pathSeparator = '/';
-
-                    var rawPathParts = path.Split( pathSeparator );
-
-                    // Ignore the last "part", as that's the file name.
-                    var namespaceParts = rawPathParts.Take( rawPathParts.Count() - 1 );
-
-                    namespaceValue = string.Join( "/", namespaceParts.ToArray() );
-
-                    // Trim any spaces.
-                    namespaceValue = namespaceValue.Replace( " ", "" );
-                    // Invalid characters replaced with _
-                    namespaceValue = namespaceValue.Replace( ".", "_" );
-                    // Separators replaced with .
-                    namespaceValue = namespaceValue.Replace( "/", "." );
-
-                    WriteDebug( string.Format( "Script Root Preference = {0}", scriptRootPreference ) );
-                    if ( scriptRootPreference.Trim().Length > 0 ) {
-                        var toTrim = scriptRootPreference.Trim();
-                        if ( namespaceValue.StartsWith( toTrim ) ) {
-                            WriteDebug( string.Format( "Trimming script root '{0}' from start of namespace", toTrim ) );
-                            namespaceValue = namespaceValue.Substring( toTrim.Length );
-                        }
-                    }
-
-                    if ( namespaceValue.StartsWith( "." ) ) {
-                        namespaceValue = namespaceValue.Substring( 1 );
-                    }
-
-                    if ( prefixPreference.Trim().Length > 0 ) {
-                        namespaceValue = string.Format( "{0}{1}{2}",
-                            prefixPreference,
-                            prefixPreference.EndsWith( "." ) ? "" : ".",
-                            namespaceValue );
-                    }
-
-                    WriteDebug( string.Format( "Using smart namespace: '{0}'", namespaceValue ) );
-
-                }
-                else {
-                    // Use the universal namespace.
-                    namespaceValue = universalNamespacePreference.Trim();
-                    WriteDebug( string.Format( "Using 'Universal' namespace: {0}", namespaceValue ) );
-                }
-
-                if ( namespaceValue.Trim().Length == 0 ) {
-                    WriteDebug( string.Format( "Namespace is empty, probably because it was placed directly within Script Root. Not adding namespace to script." ) );
+                string namespaceValue = GetNamespaceValue( path, scriptRootPreference, prefixPreference, universalNamespacePreference );
+                if ( namespaceValue == null ) {
                     return;
                 }
+
 
                 // Read the file contents, so we can insert the namespace line, and indent other lines under it.
                 string[] lines = System.IO.File.ReadAllLines( fullFilePath );
@@ -164,6 +111,68 @@ namespace GraviaSoftware.SmartNS
 
         #endregion
 
+
+        public static string GetNamespaceValue( string path, string scriptRootValue, string prefixValue, string universalNamespaceValue )
+        {
+            string namespaceValue = null;
+
+            if ( string.IsNullOrEmpty( universalNamespaceValue ) || string.IsNullOrEmpty( universalNamespaceValue.Trim() ) ) {
+                // We're not using a Universal namespace. So, generate the smart namespace.
+                namespaceValue = path;
+
+                // TODO: Do we need something else for Mac?
+                var pathSeparator = '/';
+
+                var rawPathParts = path.Split( pathSeparator );
+
+                // Ignore the last "part", as that's the file name.
+                var namespaceParts = rawPathParts.Take( rawPathParts.Count() - 1 );
+
+                namespaceValue = string.Join( "/", namespaceParts.ToArray() );
+
+                // Trim any spaces.
+                namespaceValue = namespaceValue.Replace( " ", "" );
+                // Invalid characters replaced with _
+                namespaceValue = namespaceValue.Replace( ".", "_" );
+                // Separators replaced with .
+                namespaceValue = namespaceValue.Replace( "/", "." );
+
+                WriteDebug( string.Format( "Script Root = {0}", scriptRootValue ) );
+                if ( scriptRootValue.Trim().Length > 0 ) {
+                    var toTrim = scriptRootValue.Trim();
+                    if ( namespaceValue.StartsWith( toTrim ) ) {
+                        WriteDebug( string.Format( "Trimming script root '{0}' from start of namespace", toTrim ) );
+                        namespaceValue = namespaceValue.Substring( toTrim.Length );
+                    }
+                }
+
+                if ( namespaceValue.StartsWith( "." ) ) {
+                    namespaceValue = namespaceValue.Substring( 1 );
+                }
+
+                if ( prefixValue.Trim().Length > 0 ) {
+                    namespaceValue = string.Format( "{0}{1}{2}",
+                        prefixValue,
+                        prefixValue.EndsWith( "." ) ? "" : ".",
+                        namespaceValue );
+                }
+
+                WriteDebug( string.Format( "Using smart namespace: '{0}'", namespaceValue ) );
+
+            }
+            else {
+                // Use the universal namespace.
+                namespaceValue = universalNamespaceValue.Trim();
+                WriteDebug( string.Format( "Using 'Universal' namespace: {0}", namespaceValue ) );
+            }
+
+            if ( namespaceValue.Trim().Length == 0 ) {
+                WriteDebug( string.Format( "Namespace is empty, probably because it was placed directly within Script Root. Not adding namespace to script." ) );
+                return null;
+            }
+
+            return namespaceValue;
+        }
 
 
 
