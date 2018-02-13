@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 
@@ -178,7 +177,7 @@ namespace GraviaSoftware.SmartNS.Editor
 
         #region Preference Menu
 
-        private static string versionNumber = "1.2.0";
+        private static string versionNumber = "1.2.1";
 
         // Have we loaded the prefs yet
         private static bool prefsLoaded = false;
