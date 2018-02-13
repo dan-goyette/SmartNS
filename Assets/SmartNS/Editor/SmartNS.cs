@@ -177,7 +177,9 @@ namespace GraviaSoftware.SmartNS.Editor
 
         #region Preference Menu
 
-        private static string versionNumber = "1.2.1";
+        private static string versionNumber = "1.3.0";
+
+        private static string projectPrefix = PlayerSettings.companyName + "." + PlayerSettings.productName + ".";
 
         // Have we loaded the prefs yet
         private static bool prefsLoaded = false;
@@ -218,6 +220,7 @@ namespace GraviaSoftware.SmartNS.Editor
 
             // Preferences GUI
             EditorGUILayout.HelpBox( "SmartNS adds a namespace to new C# scripts based on the directory in which they are created. Optionally, a 'Universal' namespace can be used for all scripts.", MessageType.None );
+            EditorGUILayout.HelpBox( "All preferences here are project-specific, based on the Company Name and Product Name used in Player Settings. Changing those settings will reset SmartNS preferences.", MessageType.Warning );
 
 
             var scriptRootPreferenceLabel = new GUIContent( "Script Root", "This text will be trimmed from the start of the namespace. Useful for removing 'Assets' from the start of the namespace." );
@@ -251,12 +254,12 @@ namespace GraviaSoftware.SmartNS.Editor
 
             // Save the preferences
             if ( GUI.changed ) {
-                EditorPrefs.SetString( scriptRootPreferenceKey, scriptRootPreference );
-                EditorPrefs.SetString( prefixPreferenceKey, prefixPreference );
-                EditorPrefs.SetBool( useSpacesPreferenceKey, useSpacesPreference );
-                EditorPrefs.SetInt( numberOfSpacesPreferenceKey, numberOfSpacesPreference );
-                EditorPrefs.SetString( universalNamespacePreferenceKey, universalNamespacePreference );
-                EditorPrefs.SetBool( logDebugMessagesPreferenceKey, logDebugMessagesPreference );
+                EditorPrefs.SetString( projectPrefix + scriptRootPreferenceKey, scriptRootPreference );
+                EditorPrefs.SetString( projectPrefix + prefixPreferenceKey, prefixPreference );
+                EditorPrefs.SetBool( projectPrefix + useSpacesPreferenceKey, useSpacesPreference );
+                EditorPrefs.SetInt( projectPrefix + numberOfSpacesPreferenceKey, numberOfSpacesPreference );
+                EditorPrefs.SetString( projectPrefix + universalNamespacePreferenceKey, universalNamespacePreference );
+                EditorPrefs.SetBool( projectPrefix + logDebugMessagesPreferenceKey, logDebugMessagesPreference );
 
             }
         }
@@ -264,12 +267,12 @@ namespace GraviaSoftware.SmartNS.Editor
         private static void EnsurePreferencesAreInitialized()
         {
             if ( !prefsLoaded ) {
-                scriptRootPreference = EditorPrefs.GetString( scriptRootPreferenceKey, defaultScriptRoot );
-                prefixPreference = EditorPrefs.GetString( prefixPreferenceKey, defaultPrefix );
-                useSpacesPreference = EditorPrefs.GetBool( useSpacesPreferenceKey, defaultUseSpaces );
-                numberOfSpacesPreference = EditorPrefs.GetInt( numberOfSpacesPreferenceKey, defaultNumberOfSpaces );
-                universalNamespacePreference = EditorPrefs.GetString( universalNamespacePreferenceKey, defaultUniversalNamespace );
-                logDebugMessagesPreference = EditorPrefs.GetBool( logDebugMessagesPreferenceKey, defaultLogDebugMessages );
+                scriptRootPreference = EditorPrefs.GetString( projectPrefix + scriptRootPreferenceKey, defaultScriptRoot );
+                prefixPreference = EditorPrefs.GetString( projectPrefix + prefixPreferenceKey, defaultPrefix );
+                useSpacesPreference = EditorPrefs.GetBool( projectPrefix + useSpacesPreferenceKey, defaultUseSpaces );
+                numberOfSpacesPreference = EditorPrefs.GetInt( projectPrefix + numberOfSpacesPreferenceKey, defaultNumberOfSpaces );
+                universalNamespacePreference = EditorPrefs.GetString( projectPrefix + universalNamespacePreferenceKey, defaultUniversalNamespace );
+                logDebugMessagesPreference = EditorPrefs.GetBool( projectPrefix + logDebugMessagesPreferenceKey, defaultLogDebugMessages );
 
                 prefsLoaded = true;
             }
