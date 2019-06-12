@@ -23,12 +23,9 @@ namespace GraviaSoftware.SmartNS.Editor
         {
             try
             {
-                Debug.Log($"SmartNS is intercepting creation of '{path}'");
-
-
                 // Special case: Creation of our own SmartNS Project Settings will get handled by this code. So we need to 
                 // exclude the path of our own project settings.
-                if (path.StartsWith(SmartNSSettings.k_SmartNSSettingsPath))
+                if (path.StartsWith(SmartNSSettingsProvider.k_SmartNSSettingsPath))
                 {
                     return;
                 }

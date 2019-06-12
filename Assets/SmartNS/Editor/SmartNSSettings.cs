@@ -8,8 +8,6 @@ namespace GraviaSoftware.SmartNS.Editor
     // Create a new type of Settings Asset.
     class SmartNSSettings : ScriptableObject
     {
-        public const string k_SmartNSSettingsPath = "Assets/SmartNS/SmartNSSettings.asset";
-
 #pragma warning disable 0414
         [SerializeField]
         private string m_ScriptRoot;
@@ -27,7 +25,7 @@ namespace GraviaSoftware.SmartNS.Editor
 
         internal static SmartNSSettings GetOrCreateSettings()
         {
-            var settings = AssetDatabase.LoadAssetAtPath<SmartNSSettings>(k_SmartNSSettingsPath);
+            var settings = AssetDatabase.LoadAssetAtPath<SmartNSSettings>(SmartNSSettingsProvider.k_SmartNSSettingsPath);
             if (settings == null)
             {
                 settings = ScriptableObject.CreateInstance<SmartNSSettings>();
@@ -37,7 +35,7 @@ namespace GraviaSoftware.SmartNS.Editor
                 settings.m_IndentUsingSpaces = false;
                 settings.m_NumberOfSpaces = 4;
                 settings.m_EnableDebugLogging = false;
-                AssetDatabase.CreateAsset(settings, k_SmartNSSettingsPath);
+                AssetDatabase.CreateAsset(settings, SmartNSSettingsProvider.k_SmartNSSettingsPath);
                 AssetDatabase.SaveAssets();
             }
             return settings;
@@ -49,54 +47,11 @@ namespace GraviaSoftware.SmartNS.Editor
         }
     }
 
-    //// Register a SettingsProvider using IMGUI for the drawing framework:
-    //static class SmartNSSettingsProvider
-    //{
-    //    [SettingsProvider]
-    //    public static SettingsProvider CreateSmartNSSettingsProvider()
-    //    {
-    //        // First parameter is the path in the Settings window.
-    //        // Second parameter is the scope of this setting: it only appears in the Project Settings window.
-    //        var provider = new SettingsProvider("Project/SmartNSSettings", SettingsScope.Project)
-    //        {
-    //            // By default the last token of the path is used as display name if no label is provided.
-    //            label = "SmartNS",
-    //            // Create the SettingsProvider and initialize its drawing (IMGUI) function in place:
-    //            guiHandler = (searchContext) =>
-    //            {
-    //                var settings = SmartNSSettings.GetSerializedSettings();
-    //
-    //                EditorGUILayout.LabelField(string.Format("Version {0}", SmartNS.SmartNSVersionNumber));
-    //
-    //                // Preferences GUI
-    //                EditorGUILayout.HelpBox("SmartNS adds a namespace to new C# scripts based on the directory in which they are created. Optionally, a 'Universal' namespace can be used for all scripts.", MessageType.None);
-    //
-    //
-    //                EditorGUILayout.PropertyField(settings.FindProperty("m_ScriptRoot"), new GUIContent("Script Root"));
-    //                EditorGUILayout.PropertyField(settings.FindProperty("m_NamespacePrefix"), new GUIContent("Namespace Prefix"));
-    //                EditorGUILayout.PropertyField(settings.FindProperty("m_UniversalNamespace"), new GUIContent("Universal Namespace"));
-    //                var useSpaces = EditorGUILayout.PropertyField(settings.FindProperty("m_IndentUsingSpaces"), new GUIContent("Indent using Spaces"));
-    //                if (useSpaces)
-    //                {
-    //                    EditorGUILayout.PropertyField(settings.FindProperty("m_NumberOfSpaces"), new GUIContent("Number of Spaces"));
-    //                }
-    //                EditorGUILayout.PropertyField(settings.FindProperty("m_EnableDebugLogging"), new GUIContent("Enable Debug Logging"));
-    //
-    //            },
-    //
-    //            // Populate the search keywords to enable smart search filtering and label highlighting:
-    //            keywords = new HashSet<string>(new[] { "Namespace", "Script", "Prefix", "Debug", "Logging", "Universal", "Spaces" })
-    //        };
-    //
-    //        return provider;
-    //    }
-    //}
-
-
-
     // Create SmartNSSettingsProvider by deriving from SettingsProvider:
     class SmartNSSettingsProvider : SettingsProvider
     {
+        public const string k_SmartNSSettingsPath = "Assets/SmartNS/SmartNSSettings.asset";
+
         private SerializedObject m_SmartNSSettings;
 
         class Styles
@@ -109,7 +64,6 @@ namespace GraviaSoftware.SmartNS.Editor
             public static GUIContent EnableDebugLogging = new GUIContent("Enable Debug Logging");
         }
 
-        const string k_SmartNSSettingsPath = "Assets/SmartNS/SmartNSSettings.asset";
         public SmartNSSettingsProvider(string path, SettingsScope scope = SettingsScope.Project)
             : base(path, scope) { }
 
@@ -149,7 +103,7 @@ namespace GraviaSoftware.SmartNS.Editor
         {
             if (IsSettingsAvailable())
             {
-                var provider = new SmartNSSettingsProvider("Project/SmartNSSettings", SettingsScope.Project);
+                var provider = new SmartNSSettingsProvider("Project/SmartNS", SettingsScope.Project);
 
                 // Automatically extract all keywords from the Styles.
                 provider.keywords = GetSearchKeywordsFromGUIContentProperties<Styles>();
