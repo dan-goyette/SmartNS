@@ -18,39 +18,44 @@ namespace GraviaSoftware.SmartNS.Editor
         /// Intercepts the creation of assets, looking for new .cs scripts, and inserts a namespace.
         /// </summary>
         /// <param name="path"></param>
-        public static void OnWillCreateAsset( string path )
+        public static void OnWillCreateAsset(string path)
         {
-            try {
+            try
+            {
                 EnsurePreferencesAreInitialized();
 
-                path = path.Replace( ".meta", "" );
-                int index = path.LastIndexOf( "." );
-                if ( index < 0 ) {
+                path = path.Replace(".meta", "");
+                int index = path.LastIndexOf(".");
+                if (index < 0)
+                {
                     return;
                 }
 
-                string file = path.Substring( index );
-                if ( file != ".cs" ) {
+                string file = path.Substring(index);
+                if (file != ".cs")
+                {
                     return;
                 }
 
-                WriteDebug( string.Format( "Acting on new C# file: {0}", path ) );
-                index = Application.dataPath.LastIndexOf( "Assets" );
-                var fullFilePath = Application.dataPath.Substring( 0, index ) + path;
-                WriteDebug( string.Format( "Full Path: {0}", fullFilePath ) );
-                if ( !System.IO.File.Exists( fullFilePath ) ) {
+                WriteDebug(string.Format("Acting on new C# file: {0}", path));
+                index = Application.dataPath.LastIndexOf("Assets");
+                var fullFilePath = Application.dataPath.Substring(0, index) + path;
+                WriteDebug(string.Format("Full Path: {0}", fullFilePath));
+                if (!System.IO.File.Exists(fullFilePath))
+                {
                     return;
                 }
 
                 // Generate the namespace.
-                string namespaceValue = GetNamespaceValue( path, scriptRootPreference, prefixPreference, universalNamespacePreference );
-                if ( namespaceValue == null ) {
+                string namespaceValue = GetNamespaceValue(path, scriptRootPreference, prefixPreference, universalNamespacePreference);
+                if (namespaceValue == null)
+                {
                     return;
                 }
 
 
                 // Read the file contents, so we can insert the namespace line, and indent other lines under it.
-                string[] lines = System.IO.File.ReadAllLines( fullFilePath );
+                string[] lines = System.IO.File.ReadAllLines(fullFilePath);
 
 
                 // Determining exactly where to insert the namespace is a little tricky. A user could have modified the
@@ -58,17 +63,21 @@ namespace GraviaSoftware.SmartNS.Editor
                 // 'using' statements come first, and that the namespace declaration will appear after the last using statement.
 
                 // Initially ensure that this template doesn't already contain a namespace.
-                foreach ( var line in lines ) {
-                    if ( line.StartsWith( "namespace " ) ) {
-                        WriteDebug( string.Format( "This script already contains a namespace declaration ({0}). Skipping.", line ) );
+                foreach (var line in lines)
+                {
+                    if (line.StartsWith("namespace "))
+                    {
+                        WriteDebug(string.Format("This script already contains a namespace declaration ({0}). Skipping.", line));
                         return;
                     }
                 }
 
                 var lastUsingLineIndex = 0;
                 // Find the last "using" statement in the file.
-                for ( var i = lines.Length - 1; i >= 0; i-- ) {
-                    if ( lines[i].StartsWith( "using " ) ) {
+                for (var i = lines.Length - 1; i >= 0; i--)
+                {
+                    if (lines[i].StartsWith("using "))
+                    {
                         lastUsingLineIndex = i;
                         break;
                     }
@@ -77,96 +86,114 @@ namespace GraviaSoftware.SmartNS.Editor
                 var modifiedLines = lines.ToList();
 
                 // A blank line, followed by the namespace declaration.
-                modifiedLines.Insert( lastUsingLineIndex + 1, "" );
-                modifiedLines.Insert( lastUsingLineIndex + 2, string.Format( "namespace {0} {{", namespaceValue ) );
+                modifiedLines.Insert(lastUsingLineIndex + 1, "");
+                modifiedLines.Insert(lastUsingLineIndex + 2, string.Format("namespace {0} {{", namespaceValue));
 
                 // Indent all lines in between.
-                for ( var i = lastUsingLineIndex + 3; i < modifiedLines.Count; i++ ) {
+                for (var i = lastUsingLineIndex + 3; i < modifiedLines.Count; i++)
+                {
                     var prefix = useSpacesPreference
-                        ? new string( ' ', numberOfSpacesPreference )
+                        ? new string(' ', numberOfSpacesPreference)
                         : "\t";
-                    modifiedLines[i] = string.Format( "{0}{1}", prefix, modifiedLines[i] );
+                    modifiedLines[i] = string.Format("{0}{1}", prefix, modifiedLines[i]);
                 }
 
                 // Add the closing brace.
-                modifiedLines.Add( "}" );
+                modifiedLines.Add("}");
 
                 // Don't add a namespace if one already exists in the file.
 
                 //fileContent = fileContent.Replace( "#AUTHOR#", AuthorName );
                 //fileContent = fileContent.Replace( "#NAMESPACE#", GetNamespaceForPath( path ) );
 
-                System.IO.File.WriteAllText( fullFilePath, string.Join( Environment.NewLine, modifiedLines.ToArray() ) );
+                System.IO.File.WriteAllText(fullFilePath, string.Join(Environment.NewLine, modifiedLines.ToArray()));
 
 
                 // Without this, the file won't update in Unity, and won't look right.
-                AssetDatabase.ImportAsset( path );
+                AssetDatabase.ImportAsset(path);
             }
-            catch ( Exception ex ) {
-                Debug.LogError( string.Format( "Something went really wrong trying to execute SmartNS: {0}", ex.Message ) );
-                Debug.LogError( string.Format( "SmartNS Failure Stack Trace: {0}", ex.StackTrace ) );
+            catch (Exception ex)
+            {
+                Debug.LogError(string.Format("Something went really wrong trying to execute SmartNS: {0}", ex.Message));
+                Debug.LogError(string.Format("SmartNS Failure Stack Trace: {0}", ex.StackTrace));
             }
         }
 
         #endregion
 
 
-        public static string GetNamespaceValue( string path, string scriptRootValue, string prefixValue, string universalNamespaceValue )
+        public static string GetNamespaceValue(string path, string scriptRootValue, string prefixValue, string universalNamespaceValue)
         {
             string namespaceValue = null;
 
-            if ( string.IsNullOrEmpty( universalNamespaceValue ) || string.IsNullOrEmpty( universalNamespaceValue.Trim() ) ) {
+            if (string.IsNullOrEmpty(universalNamespaceValue) || string.IsNullOrEmpty(universalNamespaceValue.Trim()))
+            {
                 // We're not using a Universal namespace. So, generate the smart namespace.
                 namespaceValue = path;
 
                 // TODO: Do we need something else for Mac?
                 var pathSeparator = '/';
 
-                var rawPathParts = path.Split( pathSeparator );
+                var rawPathParts = path.Split(pathSeparator);
 
                 // Ignore the last "part", as that's the file name.
-                var namespaceParts = rawPathParts.Take( rawPathParts.Count() - 1 );
+                var namespaceParts = rawPathParts.Take(rawPathParts.Count() - 1);
 
-                namespaceValue = string.Join( "/", namespaceParts.ToArray() );
+                namespaceValue = string.Join("/", namespaceParts.ToArray());
 
                 // Trim any spaces.
-                namespaceValue = namespaceValue.Replace( " ", "" );
+                namespaceValue = namespaceValue.Replace(" ", "");
                 // Invalid characters replaced with _
-                namespaceValue = namespaceValue.Replace( ".", "_" );
+                namespaceValue = namespaceValue.Replace(".", "_");
                 // Separators replaced with .
-                namespaceValue = namespaceValue.Replace( "/", "." );
+                namespaceValue = namespaceValue.Replace("/", ".");
 
-                WriteDebug( string.Format( "Script Root = {0}", scriptRootValue ) );
-                if ( scriptRootValue.Trim().Length > 0 ) {
+                WriteDebug(string.Format("Script Root = {0}", scriptRootValue));
+                if (scriptRootValue.Trim().Length > 0)
+                {
                     var toTrim = scriptRootValue.Trim();
-                    if ( namespaceValue.StartsWith( toTrim ) ) {
-                        WriteDebug( string.Format( "Trimming script root '{0}' from start of namespace", toTrim ) );
-                        namespaceValue = namespaceValue.Substring( toTrim.Length );
+                    if (namespaceValue.StartsWith(toTrim))
+                    {
+                        WriteDebug(string.Format("Trimming script root '{0}' from start of namespace", toTrim));
+                        namespaceValue = namespaceValue.Substring(toTrim.Length);
                     }
                 }
 
-                if ( namespaceValue.StartsWith( "." ) ) {
-                    namespaceValue = namespaceValue.Substring( 1 );
+                if (namespaceValue.StartsWith("."))
+                {
+                    namespaceValue = namespaceValue.Substring(1);
                 }
 
-                if ( prefixValue.Trim().Length > 0 ) {
-                    namespaceValue = string.Format( "{0}{1}{2}",
-                        prefixValue,
-                        prefixValue.EndsWith( "." ) ? "" : ".",
-                        namespaceValue );
+                if (prefixValue.Trim().Length > 0)
+                {
+                    if (string.IsNullOrEmpty(namespaceValue.Trim()))
+                    {
+                        // This script was likely added at Assets root.
+                        namespaceValue = prefixValue;
+                    }
+                    else
+                    {
+                        namespaceValue = string.Format("{0}{1}{2}",
+                            prefixValue,
+                            prefixValue.EndsWith(".") ? "" : ".",
+                            namespaceValue);
+                    }
+
                 }
 
-                WriteDebug( string.Format( "Using smart namespace: '{0}'", namespaceValue ) );
+                WriteDebug(string.Format("Using smart namespace: '{0}'", namespaceValue));
 
             }
-            else {
+            else
+            {
                 // Use the universal namespace.
                 namespaceValue = universalNamespaceValue.Trim();
-                WriteDebug( string.Format( "Using 'Universal' namespace: {0}", namespaceValue ) );
+                WriteDebug(string.Format("Using 'Universal' namespace: {0}", namespaceValue));
             }
 
-            if ( namespaceValue.Trim().Length == 0 ) {
-                WriteDebug( string.Format( "Namespace is empty, probably because it was placed directly within Script Root. Not adding namespace to script." ) );
+            if (namespaceValue.Trim().Length == 0)
+            {
+                WriteDebug(string.Format("Namespace is empty, probably because it was placed directly within Script Root. Not adding namespace to script."));
                 return null;
             }
 
@@ -177,7 +204,7 @@ namespace GraviaSoftware.SmartNS.Editor
 
         #region Preference Menu
 
-        private static string versionNumber = "1.3.0";
+        private static string versionNumber = "1.3.1";
 
         private static string projectPrefix = PlayerSettings.companyName + "." + PlayerSettings.productName + ".";
 
@@ -210,37 +237,38 @@ namespace GraviaSoftware.SmartNS.Editor
 
 
         // Add preferences section named "SmartNS" to the Preferences Window
-        [PreferenceItem( "SmartNS" )]
+        [PreferenceItem("SmartNS")]
         public static void PreferencesGUI()
         {
             // Load the preferences
             EnsurePreferencesAreInitialized();
 
-            EditorGUILayout.LabelField( string.Format( "Version {0}", versionNumber ) );
+            EditorGUILayout.LabelField(string.Format("Version {0}", versionNumber));
 
             // Preferences GUI
-            EditorGUILayout.HelpBox( "SmartNS adds a namespace to new C# scripts based on the directory in which they are created. Optionally, a 'Universal' namespace can be used for all scripts.", MessageType.None );
-            EditorGUILayout.HelpBox( "All preferences here are project-specific, based on the Company Name and Product Name used in Player Settings. Changing those settings will reset SmartNS preferences.", MessageType.Warning );
+            EditorGUILayout.HelpBox("SmartNS adds a namespace to new C# scripts based on the directory in which they are created. Optionally, a 'Universal' namespace can be used for all scripts.", MessageType.None);
+            EditorGUILayout.HelpBox("All preferences here are project-specific, based on the Company Name and Product Name used in Player Settings. Changing those settings will reset SmartNS preferences.", MessageType.Warning);
 
 
-            var scriptRootPreferenceLabel = new GUIContent( "Script Root", "This text will be trimmed from the start of the namespace. Useful for removing 'Assets' from the start of the namespace." );
-            scriptRootPreference = EditorGUILayout.TextField( scriptRootPreferenceLabel, scriptRootPreference );
-
-            EditorGUILayout.Space();
-            var prefixPreferenceLabel = new GUIContent( "Namespace Prefix", "Included prior to the Smart namespace" );
-            prefixPreference = EditorGUILayout.TextField( prefixPreferenceLabel, prefixPreference );
+            var scriptRootPreferenceLabel = new GUIContent("Script Root", "This text will be trimmed from the start of the namespace. Useful for removing 'Assets' from the start of the namespace.");
+            scriptRootPreference = EditorGUILayout.TextField(scriptRootPreferenceLabel, scriptRootPreference);
 
             EditorGUILayout.Space();
-            var universalNamespacePreferenceLabel = new GUIContent( "Universal Namespace", "Makes SmartNS less 'smart', and uses the following namespace for all scripts, no matter where they are created." );
-            universalNamespacePreference = EditorGUILayout.TextField( universalNamespacePreferenceLabel, universalNamespacePreference );
+            var prefixPreferenceLabel = new GUIContent("Namespace Prefix", "Included prior to the Smart namespace");
+            prefixPreference = EditorGUILayout.TextField(prefixPreferenceLabel, prefixPreference);
 
             EditorGUILayout.Space();
-            var useSpacesPreferenceLabel = new GUIContent( "Indent using Spaces", "The indentation applied to the script will use spaces instead of tabs if this is selected." );
-            useSpacesPreference = EditorGUILayout.Toggle( useSpacesPreferenceLabel, useSpacesPreference );
+            var universalNamespacePreferenceLabel = new GUIContent("Universal Namespace", "Makes SmartNS less 'smart', and uses the following namespace for all scripts, no matter where they are created.");
+            universalNamespacePreference = EditorGUILayout.TextField(universalNamespacePreferenceLabel, universalNamespacePreference);
 
-            if ( useSpacesPreference ) {
-                var numberOfSpacesPreferenceLabel = new GUIContent( "# of Spaces", "The number of spaces to indent per 'tab'" );
-                numberOfSpacesPreference = EditorGUILayout.IntField( numberOfSpacesPreferenceLabel, numberOfSpacesPreference );
+            EditorGUILayout.Space();
+            var useSpacesPreferenceLabel = new GUIContent("Indent using Spaces", "The indentation applied to the script will use spaces instead of tabs if this is selected.");
+            useSpacesPreference = EditorGUILayout.Toggle(useSpacesPreferenceLabel, useSpacesPreference);
+
+            if (useSpacesPreference)
+            {
+                var numberOfSpacesPreferenceLabel = new GUIContent("# of Spaces", "The number of spaces to indent per 'tab'");
+                numberOfSpacesPreference = EditorGUILayout.IntField(numberOfSpacesPreferenceLabel, numberOfSpacesPreference);
             }
 
 
@@ -248,31 +276,33 @@ namespace GraviaSoftware.SmartNS.Editor
 
             EditorGUILayout.Space();
             EditorGUILayout.Space();
-            var logDebugMessagesPreferenceLabel = new GUIContent( "Enable Debug Logging", "When enabled, debug info will be written to the log." );
-            logDebugMessagesPreference = EditorGUILayout.Toggle( logDebugMessagesPreferenceLabel, logDebugMessagesPreference );
+            var logDebugMessagesPreferenceLabel = new GUIContent("Enable Debug Logging", "When enabled, debug info will be written to the log.");
+            logDebugMessagesPreference = EditorGUILayout.Toggle(logDebugMessagesPreferenceLabel, logDebugMessagesPreference);
 
 
             // Save the preferences
-            if ( GUI.changed ) {
-                EditorPrefs.SetString( projectPrefix + scriptRootPreferenceKey, scriptRootPreference );
-                EditorPrefs.SetString( projectPrefix + prefixPreferenceKey, prefixPreference );
-                EditorPrefs.SetBool( projectPrefix + useSpacesPreferenceKey, useSpacesPreference );
-                EditorPrefs.SetInt( projectPrefix + numberOfSpacesPreferenceKey, numberOfSpacesPreference );
-                EditorPrefs.SetString( projectPrefix + universalNamespacePreferenceKey, universalNamespacePreference );
-                EditorPrefs.SetBool( projectPrefix + logDebugMessagesPreferenceKey, logDebugMessagesPreference );
+            if (GUI.changed)
+            {
+                EditorPrefs.SetString(projectPrefix + scriptRootPreferenceKey, scriptRootPreference);
+                EditorPrefs.SetString(projectPrefix + prefixPreferenceKey, prefixPreference);
+                EditorPrefs.SetBool(projectPrefix + useSpacesPreferenceKey, useSpacesPreference);
+                EditorPrefs.SetInt(projectPrefix + numberOfSpacesPreferenceKey, numberOfSpacesPreference);
+                EditorPrefs.SetString(projectPrefix + universalNamespacePreferenceKey, universalNamespacePreference);
+                EditorPrefs.SetBool(projectPrefix + logDebugMessagesPreferenceKey, logDebugMessagesPreference);
 
             }
         }
 
         private static void EnsurePreferencesAreInitialized()
         {
-            if ( !prefsLoaded ) {
-                scriptRootPreference = EditorPrefs.GetString( projectPrefix + scriptRootPreferenceKey, defaultScriptRoot );
-                prefixPreference = EditorPrefs.GetString( projectPrefix + prefixPreferenceKey, defaultPrefix );
-                useSpacesPreference = EditorPrefs.GetBool( projectPrefix + useSpacesPreferenceKey, defaultUseSpaces );
-                numberOfSpacesPreference = EditorPrefs.GetInt( projectPrefix + numberOfSpacesPreferenceKey, defaultNumberOfSpaces );
-                universalNamespacePreference = EditorPrefs.GetString( projectPrefix + universalNamespacePreferenceKey, defaultUniversalNamespace );
-                logDebugMessagesPreference = EditorPrefs.GetBool( projectPrefix + logDebugMessagesPreferenceKey, defaultLogDebugMessages );
+            if (!prefsLoaded)
+            {
+                scriptRootPreference = EditorPrefs.GetString(projectPrefix + scriptRootPreferenceKey, defaultScriptRoot);
+                prefixPreference = EditorPrefs.GetString(projectPrefix + prefixPreferenceKey, defaultPrefix);
+                useSpacesPreference = EditorPrefs.GetBool(projectPrefix + useSpacesPreferenceKey, defaultUseSpaces);
+                numberOfSpacesPreference = EditorPrefs.GetInt(projectPrefix + numberOfSpacesPreferenceKey, defaultNumberOfSpaces);
+                universalNamespacePreference = EditorPrefs.GetString(projectPrefix + universalNamespacePreferenceKey, defaultUniversalNamespace);
+                logDebugMessagesPreference = EditorPrefs.GetBool(projectPrefix + logDebugMessagesPreferenceKey, defaultLogDebugMessages);
 
                 prefsLoaded = true;
             }
@@ -285,12 +315,13 @@ namespace GraviaSoftware.SmartNS.Editor
 
         #region Debug
 
-        private static void WriteDebug( string message )
+        private static void WriteDebug(string message)
         {
             EnsurePreferencesAreInitialized();
 
-            if ( logDebugMessagesPreference ) {
-                Debug.Log( string.Format( "SmartNS Debug: {0}", message ) );
+            if (logDebugMessagesPreference)
+            {
+                Debug.Log(string.Format("SmartNS Debug: {0}", message));
             }
         }
 
