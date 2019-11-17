@@ -6,10 +6,8 @@ using UnityEngine;
 // This package changed in 2019.1
 #if UNITY_2019_1_OR_NEWER
 using UnityEngine.UIElements;    
-using UnityEngine.UIElements.StyleEnums;
 #elif UNITY_2018_4_OR_NEWER
 using UnityEngine.Experimental.UIElements;
-using UnityEngine.Experimental.UIElements.StyleEnums;
 #endif
 
 
