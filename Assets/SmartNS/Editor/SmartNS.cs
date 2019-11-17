@@ -24,21 +24,19 @@ namespace GraviaSoftware.SmartNS.Editor
         {
             try
             {
-                // Special case: Creation of our own SmartNS Project Settings will get handled by this code. So we need to 
-                // exclude the path of our own project settings.
-                if (path.StartsWith(SmartNSSettings.SmartNSSettingsPath))
+                // We only intercept C# scripts.
+                if (!path.EndsWith(".cs.meta"))
                 {
                     return;
                 }
 
-                //EnsurePreferencesAreInitialized();
+                if (!SmartNSSettings.SettingsFileExists())
+                {
+                    Debug.LogWarning($"No Project Settings asset exists for SmartNS. Create one via the \"Create\" menu under \"{SmartNSSettings.AssetMenuName}\" in order to use SmartNS functionality.");
+                    return;
+                }
 
                 var smartNSSettings = SmartNSSettings.GetSerializedSettings();
-
-                if (smartNSSettings == null)
-                {
-                    throw new Exception("Unable to find SmartNS Project Settings.");
-                }
 
                 var scriptRootSettingsValue = smartNSSettings.FindProperty("m_ScriptRoot").stringValue;
                 var prefixSettingsValue = smartNSSettings.FindProperty("m_NamespacePrefix").stringValue;
@@ -50,12 +48,6 @@ namespace GraviaSoftware.SmartNS.Editor
                 path = path.Replace(".meta", "");
                 int index = path.LastIndexOf(".");
                 if (index < 0)
-                {
-                    return;
-                }
-
-                string file = path.Substring(index);
-                if (file != ".cs")
                 {
                     return;
                 }

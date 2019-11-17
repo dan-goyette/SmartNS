@@ -15,6 +15,6 @@ MonoBehaviour:
   m_ScriptRoot: Assets
   m_NamespacePrefix: 
   m_UniversalNamespace: 
-  m_IndentUsingSpaces: 0
-  m_NumberOfSpaces: 4
+  m_IndentUsingSpaces: 1
+  m_NumberOfSpaces: 0
   m_EnableDebugLogging: 0

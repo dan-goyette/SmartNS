@@ -1,5 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -18,6 +19,7 @@ namespace GraviaSoftware.SmartNS.Editor
 
 
     // Create a new type of Settings Asset.
+    [CreateAssetMenu(menuName = AssetMenuName, fileName = "SmartNSSettings")]
     public class SmartNSSettings : ScriptableObject
     {
 #pragma warning disable 0414
@@ -35,29 +37,75 @@ namespace GraviaSoftware.SmartNS.Editor
         private bool m_EnableDebugLogging;
 #pragma warning restore 0414
 
-        public const string SmartNSSettingsPath = "Assets/SmartNS/SmartNSSettings.asset";
+
+        public const string AssetMenuName = "SmartNS/Smart NS Project Settings";
+        private const string _defaultSmartNSSettingsPath = "Assets/SmartNS/Editor/SmartNSSettings.asset";
 
         internal static SmartNSSettings GetOrCreateSettings()
         {
-            var settings = AssetDatabase.LoadAssetAtPath<SmartNSSettings>(SmartNSSettingsPath);
-            if (settings == null)
+            var smartNSSettings = GetSmartNSSettingsAsset();
+
+            if (smartNSSettings == null)
             {
-                settings = ScriptableObject.CreateInstance<SmartNSSettings>();
-                settings.m_ScriptRoot = "Assets";
-                settings.m_NamespacePrefix = "";
-                settings.m_UniversalNamespace = "";
-                settings.m_IndentUsingSpaces = false;
-                settings.m_NumberOfSpaces = 4;
-                settings.m_EnableDebugLogging = false;
-                AssetDatabase.CreateAsset(settings, SmartNSSettingsPath);
+                // We don't have any setting. Create one wherever the c# class is.
+
+                smartNSSettings = ScriptableObject.CreateInstance<SmartNSSettings>();
+                smartNSSettings.m_ScriptRoot = "Assets";
+                smartNSSettings.m_NamespacePrefix = "";
+                smartNSSettings.m_UniversalNamespace = "";
+                smartNSSettings.m_IndentUsingSpaces = false;
+                smartNSSettings.m_NumberOfSpaces = 4;
+                smartNSSettings.m_EnableDebugLogging = false;
+                AssetDatabase.CreateAsset(smartNSSettings, _defaultSmartNSSettingsPath);
                 AssetDatabase.SaveAssets();
             }
-            return settings;
+            return smartNSSettings;
         }
+
 
         internal static SerializedObject GetSerializedSettings()
         {
             return new SerializedObject(GetOrCreateSettings());
+        }
+
+        public static bool SettingsFileExists()
+        {
+            return GetSmartNSSettingsAsset() != null;
+        }
+
+        public static SmartNSSettings GetSmartNSSettingsAsset()
+        {
+            SmartNSSettings smartNSSettings = null;
+
+            // Although there is a default location for thr Settings, we want to be able to find it even if the 
+            // player has moved them around. This will locate the settings even if they're not in the default location.
+            var smartNSSettingsAssetGuids = AssetDatabase.FindAssets("t:SmartNSSettings");
+
+            if (smartNSSettingsAssetGuids.Length > 1)
+            {
+                var paths = string.Join(", ", smartNSSettingsAssetGuids.Select(guid => AssetDatabase.GUIDToAssetPath(guid)));
+                Debug.LogWarning($"Multiple SmartNSSettings.asset files exist in this project. This may lead to confusion, as any of the settings files may be chosen arbitrarily. You should remove all but one of the following so that you only have one SmartNSSettings.asset files: {paths}");
+            }
+
+            if (smartNSSettingsAssetGuids.Length > 0)
+            {
+                smartNSSettings = AssetDatabase.LoadAssetAtPath<SmartNSSettings>(AssetDatabase.GUIDToAssetPath(smartNSSettingsAssetGuids.First()));
+                //Debug.Log($"Found SmartNSSettings at path {AssetDatabase.GUIDToAssetPath(smartNSSettingsAssetGuids.First())}");
+            }
+
+            return smartNSSettings;
+        }
+
+
+        /// <summary>
+        /// A special method used to decide whether a given asset path is an instance of these settings        /// 
+        /// </summary>
+        /// <param name="assetPath"></param>
+        /// <returns></returns>
+        public static bool PathIsSettingsFile(string assetPath)
+        {
+            Debug.Log($"Is {assetPath} a settings asset?");
+            return assetPath == _defaultSmartNSSettingsPath;
         }
     }
 
@@ -85,7 +133,7 @@ namespace GraviaSoftware.SmartNS.Editor
 
         public static bool IsSettingsAvailable()
         {
-            return File.Exists(SmartNSSettings.SmartNSSettingsPath);
+            return SmartNSSettings.SettingsFileExists();
         }
 
         public override void OnActivate(string searchContext, VisualElement rootElement)
@@ -128,7 +176,7 @@ namespace GraviaSoftware.SmartNS.Editor
         {
             if (IsSettingsAvailable())
             {
-                //Debug.Log("Settings Available");
+                Debug.Log("Settings Available");
                 var provider = new SmartNSSettingsProvider("Project/SmartNS", SettingsScope.Project);
 
                 // Automatically extract all keywords from the Styles.
@@ -136,7 +184,7 @@ namespace GraviaSoftware.SmartNS.Editor
                 return provider;
             }
 
-            //Debug.Log("Settings Not Available");
+            // Debug.Log("Settings Not Available");
             // Settings Asset doesn't exist yet; no need to display anything in the Settings window.
             return null;
         }
