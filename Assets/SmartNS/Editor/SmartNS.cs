@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 
@@ -11,7 +12,7 @@ namespace GraviaSoftware.SmartNS.Editor
     /// </summary>
     public class SmartNS : UnityEditor.AssetModificationProcessor
     {
-        public const string SmartNSVersionNumber = "1.3.1";
+        public const string SmartNSVersionNumber = "1.0.0";
 
         #region Asset Creation
 
@@ -105,6 +106,10 @@ namespace GraviaSoftware.SmartNS.Editor
                     }
                 }
 
+                // We try to keep line endings consistent. Detect the file's current line endings, and 
+                // from that, determine which kind of line ending we should use.
+                var lineEnding = DetectLineEndings(fullFilePath);
+
                 var modifiedLines = lines.ToList();
 
                 // A blank line, followed by the namespace declaration.
@@ -128,7 +133,7 @@ namespace GraviaSoftware.SmartNS.Editor
                 //fileContent = fileContent.Replace( "#AUTHOR#", AuthorName );
                 //fileContent = fileContent.Replace( "#NAMESPACE#", GetNamespaceForPath( path ) );
 
-                System.IO.File.WriteAllText(fullFilePath, string.Join(Environment.NewLine, modifiedLines.ToArray()));
+                System.IO.File.WriteAllText(fullFilePath, string.Join(lineEnding, modifiedLines.ToArray()));
 
 
                 // Without this, the file won't update in Unity, and won't look right.
@@ -138,6 +143,41 @@ namespace GraviaSoftware.SmartNS.Editor
             {
                 Debug.LogError(string.Format("Something went really wrong trying to execute SmartNS: {0}", ex.Message));
                 Debug.LogError(string.Format("SmartNS Failure Stack Trace: {0}", ex.StackTrace));
+            }
+        }
+
+        private static string DetectLineEndings(string filePath)
+        {
+            // There are three options for line endings: Mac, Unix, and Windows. More generally, they are:
+            //  - \r = CR
+            //  - \n = LF
+            //  - \r\n = CR LF
+            // 
+            // Ideally we'll remain consistent in the line endings we use when composing the file. So, we
+            // inspect the raw file data here to determine which line endings are being used.
+
+            var allText = System.IO.File.ReadAllText(filePath);
+
+            if (allText.Contains("\r\n"))
+            {
+                //Debug.Log($"{filePath}'s line endings are \\r\\n");
+                return "\r\n";
+            }
+            else if (allText.Contains("\r"))
+            {
+                //Debug.Log($"{filePath}'s line endings are \\r");
+                return "\r";
+            }
+            else if (allText.Contains("\n"))
+            {
+                //Debug.Log($"{filePath}'s line endings are \\n");
+                return "\n";
+            }
+            else
+            {
+                //Debug.Log($"{filePath}'s line endings are indeterminate, so using system default.");
+                // Default to returning the OS default
+                return Environment.NewLine;
             }
         }
 
@@ -153,24 +193,6 @@ namespace GraviaSoftware.SmartNS.Editor
                 // We're not using a Universal namespace. So, generate the smart namespace.
                 namespaceValue = path;
 
-                // TODO: Do we need something else for Mac?
-                var pathSeparator = '/';
-
-                var rawPathParts = path.Split(pathSeparator);
-
-                // Ignore the last "part", as that's the file name.
-                var namespaceParts = rawPathParts.Take(rawPathParts.Count() - 1);
-
-                namespaceValue = string.Join("/", namespaceParts.ToArray());
-
-                // Trim any spaces.
-                namespaceValue = namespaceValue.Replace(" ", "");
-                // Invalid characters replaced with _
-                namespaceValue = namespaceValue.Replace(".", "_");
-                // Separators replaced with .
-                namespaceValue = namespaceValue.Replace("/", ".");
-
-                WriteDebug(string.Format("Script Root = {0}", scriptRootValue));
                 if (scriptRootValue.Trim().Length > 0)
                 {
                     var toTrim = scriptRootValue.Trim();
@@ -180,6 +202,41 @@ namespace GraviaSoftware.SmartNS.Editor
                         namespaceValue = namespaceValue.Substring(toTrim.Length);
                     }
                 }
+
+                // TODO: Do we need something else for Mac?
+                var pathSeparator = "/";
+
+                var rawPathParts = namespaceValue.Split(pathSeparator.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+
+                // Ignore the last "part", as that's the file name.
+                var namespaceParts = rawPathParts.Take(rawPathParts.Count() - 1).ToArray();
+
+
+                // Namespace identifiers can't start with a number. So we prefix those with underscores
+                // if they exist.
+                for (int namespacePartIndex = 0; namespacePartIndex < namespaceParts.Length; namespacePartIndex++)
+                {
+                    var match = Regex.Match(namespaceParts[namespacePartIndex], "^\\d");
+                    if (match.Success)
+                    {
+                        namespaceParts[namespacePartIndex] = "_" + namespaceParts[namespacePartIndex];
+                    }
+                }
+
+
+                namespaceValue = string.Join("/", namespaceParts);
+
+                // Trim any spaces.
+                namespaceValue = namespaceValue.Replace(" ", "");
+                // Invalid characters replaced with _
+                namespaceValue = namespaceValue.Replace(".", "_");
+                // Separators replaced with .
+                namespaceValue = namespaceValue.Replace("/", ".");
+
+                WriteDebug(string.Format("Script Root = {0}", scriptRootValue));
+
+
+
 
                 if (namespaceValue.StartsWith("."))
                 {
