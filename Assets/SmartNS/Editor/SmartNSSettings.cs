@@ -128,7 +128,7 @@ namespace GraviaSoftware.SmartNS.Editor
         {
             if (IsSettingsAvailable())
             {
-                Debug.Log("Settings Available");
+                //Debug.Log("Settings Available");
                 var provider = new SmartNSSettingsProvider("Project/SmartNS", SettingsScope.Project);
 
                 // Automatically extract all keywords from the Styles.
@@ -136,7 +136,7 @@ namespace GraviaSoftware.SmartNS.Editor
                 return provider;
             }
 
-            Debug.Log("Settings Not Available");
+            //Debug.Log("Settings Not Available");
             // Settings Asset doesn't exist yet; no need to display anything in the Settings window.
             return null;
         }
