@@ -1,1 +1,1 @@
-xcopy "C:\Users\Dan\Documents\GitHub\SmartNS\Assets\SmartNS\*"  "D:\Unity Demo Projects\SmartNS\SmartNS_2019_1\Assets\SmartNS\*"  /K /D /H /Y
+xcopy  "C:\Users\Dan\Documents\GitHub\SmartNS\Assets\SmartNS"  "D:\Unity Demo Projects\SmartNS\SmartNS_2019_1\Assets\SmartNS"  /Y /I /S
