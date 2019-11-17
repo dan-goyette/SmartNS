@@ -26,7 +26,7 @@ namespace GraviaSoftware.SmartNS.Editor
             {
                 // Special case: Creation of our own SmartNS Project Settings will get handled by this code. So we need to 
                 // exclude the path of our own project settings.
-                if (path.StartsWith(SmartNSSettingsProvider.k_SmartNSSettingsPath))
+                if (path.StartsWith(SmartNSSettings.SmartNSSettingsPath))
                 {
                     return;
                 }

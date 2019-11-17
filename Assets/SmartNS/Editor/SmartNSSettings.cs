@@ -1,12 +1,15 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using UnityEditor;
 using UnityEngine;
 
 // This package changed in 2019.1
 #if UNITY_2019_1_OR_NEWER
-using UnityEngine.UIElements;
+using UnityEngine.UIElements;    
+using UnityEngine.UIElements.StyleEnums;
 #elif UNITY_2018_4_OR_NEWER
 using UnityEngine.Experimental.UIElements;
+using UnityEngine.Experimental.UIElements.StyleEnums;
 #endif
 
 
@@ -14,8 +17,10 @@ using UnityEngine.Experimental.UIElements;
 
 namespace GraviaSoftware.SmartNS.Editor
 {
+
+
     // Create a new type of Settings Asset.
-    class SmartNSSettings : ScriptableObject
+    public class SmartNSSettings : ScriptableObject
     {
 #pragma warning disable 0414
         [SerializeField]
@@ -32,9 +37,11 @@ namespace GraviaSoftware.SmartNS.Editor
         private bool m_EnableDebugLogging;
 #pragma warning restore 0414
 
+        public const string SmartNSSettingsPath = "Assets/SmartNS/SmartNSSettings.asset";
+
         internal static SmartNSSettings GetOrCreateSettings()
         {
-            var settings = AssetDatabase.LoadAssetAtPath<SmartNSSettings>(SmartNSSettingsProvider.k_SmartNSSettingsPath);
+            var settings = AssetDatabase.LoadAssetAtPath<SmartNSSettings>(SmartNSSettingsPath);
             if (settings == null)
             {
                 settings = ScriptableObject.CreateInstance<SmartNSSettings>();
@@ -44,7 +51,7 @@ namespace GraviaSoftware.SmartNS.Editor
                 settings.m_IndentUsingSpaces = false;
                 settings.m_NumberOfSpaces = 4;
                 settings.m_EnableDebugLogging = false;
-                AssetDatabase.CreateAsset(settings, SmartNSSettingsProvider.k_SmartNSSettingsPath);
+                AssetDatabase.CreateAsset(settings, SmartNSSettingsPath);
                 AssetDatabase.SaveAssets();
             }
             return settings;
@@ -56,10 +63,12 @@ namespace GraviaSoftware.SmartNS.Editor
         }
     }
 
+
+
     // Create SmartNSSettingsProvider by deriving from SettingsProvider:
     public class SmartNSSettingsProvider : SettingsProvider
     {
-        public const string k_SmartNSSettingsPath = "Assets/SmartNS/SmartNSSettings.asset";
+
 
         private SerializedObject m_SmartNSSettings;
 
@@ -78,7 +87,7 @@ namespace GraviaSoftware.SmartNS.Editor
 
         public static bool IsSettingsAvailable()
         {
-            return File.Exists(k_SmartNSSettingsPath);
+            return File.Exists(SmartNSSettings.SmartNSSettingsPath);
         }
 
         public override void OnActivate(string searchContext, VisualElement rootElement)
@@ -87,8 +96,15 @@ namespace GraviaSoftware.SmartNS.Editor
             m_SmartNSSettings = SmartNSSettings.GetSerializedSettings();
         }
 
+        public override void OnDeactivate()
+        {
+            AssetDatabase.SaveAssets();
+        }
+
         public override void OnGUI(string searchContext)
         {
+            m_SmartNSSettings.Update();
+
             // Use IMGUI to display UI:
             EditorGUILayout.LabelField(string.Format("Version {0}", SmartNS.SmartNSVersionNumber));
 
@@ -104,6 +120,8 @@ namespace GraviaSoftware.SmartNS.Editor
                 EditorGUILayout.PropertyField(m_SmartNSSettings.FindProperty("m_NumberOfSpaces"), Styles.NumberOfSpaces);
             }
             EditorGUILayout.PropertyField(m_SmartNSSettings.FindProperty("m_EnableDebugLogging"), Styles.EnableDebugLogging);
+
+            m_SmartNSSettings.ApplyModifiedProperties();
         }
 
         // Register the SettingsProvider
@@ -112,6 +130,7 @@ namespace GraviaSoftware.SmartNS.Editor
         {
             if (IsSettingsAvailable())
             {
+                Debug.Log("Settings Available");
                 var provider = new SmartNSSettingsProvider("Project/SmartNS", SettingsScope.Project);
 
                 // Automatically extract all keywords from the Styles.
@@ -119,8 +138,10 @@ namespace GraviaSoftware.SmartNS.Editor
                 return provider;
             }
 
+            Debug.Log("Settings Not Available");
             // Settings Asset doesn't exist yet; no need to display anything in the Settings window.
             return null;
         }
     }
+
 }
