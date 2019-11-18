@@ -12,7 +12,7 @@ namespace GraviaSoftware.SmartNS.Editor
     /// </summary>
     public class SmartNS : UnityEditor.AssetModificationProcessor
     {
-        public const string SmartNSVersionNumber = "1.0.0";
+        public const string SmartNSVersionNumber = "1.5.0";
 
         #region Asset Creation
 
