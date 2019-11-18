@@ -157,8 +157,9 @@ namespace GraviaSoftware.SmartNS.Editor
             EditorGUILayout.PropertyField(m_SmartNSSettings.FindProperty("m_ScriptRoot"), Styles.ScriptRoot);
             EditorGUILayout.PropertyField(m_SmartNSSettings.FindProperty("m_NamespacePrefix"), Styles.NamespacePrefix);
             EditorGUILayout.PropertyField(m_SmartNSSettings.FindProperty("m_UniversalNamespace"), Styles.UniversalNamespace);
-            var useSpaces = EditorGUILayout.PropertyField(m_SmartNSSettings.FindProperty("m_IndentUsingSpaces"), Styles.IndentUsingSpaces);
-            if (useSpaces)
+            var useSpacesProperty = m_SmartNSSettings.FindProperty("m_IndentUsingSpaces");
+            var useSpaces = EditorGUILayout.PropertyField(useSpacesProperty, Styles.IndentUsingSpaces);
+            if (useSpacesProperty.boolValue)
             {
                 EditorGUILayout.PropertyField(m_SmartNSSettings.FindProperty("m_NumberOfSpaces"), Styles.NumberOfSpaces);
             }
