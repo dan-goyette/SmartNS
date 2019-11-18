@@ -37,7 +37,7 @@ namespace GraviaSoftware.SmartNS.Editor
         private bool m_EnableDebugLogging;
 #pragma warning restore 0414
 
-        private const string _defaultSmartNSSettingsDirectoryPath = "Assets/SmartNS/Editor";
+        private const string _defaultSmartNSSettingsDirectoryPath = "Assets/SmartNS";
         private const string _defaultSmartNSSettingsAssetName = "SmartNSSettings.asset";
 
         internal static SmartNSSettings GetOrCreateSettings()
