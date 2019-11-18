@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using UnityEditor;
@@ -36,8 +37,8 @@ namespace GraviaSoftware.SmartNS.Editor
         private bool m_EnableDebugLogging;
 #pragma warning restore 0414
 
-
-        private const string _defaultSmartNSSettingsPath = "Assets/SmartNS/Editor/SmartNSSettings.asset";
+        private const string _defaultSmartNSSettingsDirectoryPath = "Assets/SmartNS/Editor";
+        private const string _defaultSmartNSSettingsAssetName = "SmartNSSettings.asset";
 
         internal static SmartNSSettings GetOrCreateSettings()
         {
@@ -54,7 +55,19 @@ namespace GraviaSoftware.SmartNS.Editor
                 smartNSSettings.m_IndentUsingSpaces = true;
                 smartNSSettings.m_NumberOfSpaces = 4;
                 smartNSSettings.m_EnableDebugLogging = false;
-                AssetDatabase.CreateAsset(smartNSSettings, _defaultSmartNSSettingsPath);
+
+
+                // Try to create the asset at the default location. If the directory doesn't exist, just put it under Assets.
+                string fullAssetPath = "";
+                if (AssetDatabase.IsValidFolder(_defaultSmartNSSettingsDirectoryPath))
+                {
+                    fullAssetPath = Path.Combine(_defaultSmartNSSettingsDirectoryPath, _defaultSmartNSSettingsAssetName);
+                }
+                else
+                {
+                    fullAssetPath = Path.Combine("Assets", _defaultSmartNSSettingsAssetName);
+                }
+                AssetDatabase.CreateAsset(smartNSSettings, fullAssetPath);
                 AssetDatabase.SaveAssets();
             }
             return smartNSSettings;
@@ -66,9 +79,31 @@ namespace GraviaSoftware.SmartNS.Editor
             return new SerializedObject(GetOrCreateSettings());
         }
 
+
+
         public static bool SettingsFileExists()
         {
             return GetSmartNSSettingsAsset() != null;
+        }
+
+        private static string GetSettingsFilePath()
+        {
+            // Although there is a default location for thr Settings, we want to be able to find it even if the 
+            // player has moved them around. This will locate the settings even if they're not in the default location.
+            var smartNSSettingsAssetGuids = AssetDatabase.FindAssets("t:SmartNSSettings");
+
+            if (smartNSSettingsAssetGuids.Length > 1)
+            {
+                var paths = string.Join(", ", smartNSSettingsAssetGuids.Select(guid => AssetDatabase.GUIDToAssetPath(guid)));
+                Debug.LogWarning($"Multiple SmartNSSettings.asset files exist in this project. This may lead to confusion, as any of the settings files may be chosen arbitrarily. You should remove all but one of the following so that you only have one SmartNSSettings.asset files: {paths}");
+            }
+
+            if (smartNSSettingsAssetGuids.Length > 0)
+            {
+                return AssetDatabase.GUIDToAssetPath(smartNSSettingsAssetGuids.First());
+            }
+
+            return null;
         }
 
         public static SmartNSSettings GetSmartNSSettingsAsset()
@@ -90,20 +125,32 @@ namespace GraviaSoftware.SmartNS.Editor
                 smartNSSettings = AssetDatabase.LoadAssetAtPath<SmartNSSettings>(AssetDatabase.GUIDToAssetPath(smartNSSettingsAssetGuids.First()));
             }
 
-            return smartNSSettings;
+            var settingsFilePath = GetSettingsFilePath();
+            if (settingsFilePath == null)
+            {
+                return null;
+            }
+            else
+            {
+                return AssetDatabase.LoadAssetAtPath<SmartNSSettings>(settingsFilePath);
+            }
         }
 
 
-        /// <summary>
-        /// A special method used to decide whether a given asset path is an instance of these settings        /// 
-        /// </summary>
-        /// <param name="assetPath"></param>
-        /// <returns></returns>
-        public static bool PathIsSettingsFile(string assetPath)
-        {
-            Debug.Log($"Is {assetPath} a settings asset?");
-            return assetPath == _defaultSmartNSSettingsPath;
-        }
+        // There's no real need for this, given that we auto-create settings either when creating C# files or when opening Project Settings
+        //[MenuItem("GameObject/SmartNS/Create SmartNS Settings")]
+        //public static void EnsureSmartNSSettings()
+        //{
+        //    if (SettingsFileExists())
+        //    {
+        //        EditorUtility.DisplayDialog("Settings Exist", $"A SmartNS settings file already exists at path: {GetSettingsFilePath()}", "OK");
+        //    }
+        //    else
+        //    {
+        //        GetOrCreateSettings();
+        //        EditorUtility.DisplayDialog("Settings Created", $"Created SmartNS settings file at path: {GetSettingsFilePath()}", "OK");
+        //    }
+        //}
     }
 
 
@@ -172,19 +219,20 @@ namespace GraviaSoftware.SmartNS.Editor
         [SettingsProvider]
         public static SettingsProvider CreateSmartNSSettingsProvider()
         {
-            if (IsSettingsAvailable())
+            if (!IsSettingsAvailable())
             {
-                //Debug.Log("Settings Available");
-                var provider = new SmartNSSettingsProvider("Project/SmartNS", SettingsScope.Project);
-
-                // Automatically extract all keywords from the Styles.
-                provider.keywords = GetSearchKeywordsFromGUIContentProperties<Styles>();
-                return provider;
+                // Make sure settings exist.
+                SmartNSSettings.GetOrCreateSettings();
             }
 
-            // Debug.Log("Settings Not Available");
-            // Settings Asset doesn't exist yet; no need to display anything in the Settings window.
-            return null;
+
+            //Debug.Log("Settings Available");
+            var provider = new SmartNSSettingsProvider("Project/SmartNS", SettingsScope.Project);
+
+            // Automatically extract all keywords from the Styles.
+            provider.keywords = GetSearchKeywordsFromGUIContentProperties<Styles>();
+            return provider;
+
         }
     }
 

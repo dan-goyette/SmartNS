@@ -1,0 +1,30 @@
+SmartNS 1.0.0
+
+-- Overview --
+
+SmartNS is a fairly simple utility that automatically inserts namespaces into C# files as they are created, based on the directory they're created in. For example, if you create a script in the directory Code/Controllers/FirstPerson, the resulting C# class will automatically include the namespace "Code.Controllers.FirstPerson". This allows you to keep your code more organized on larger projects.
+
+By default, SmartNS will turn the directory path into a namespace, automatically correcting for any invalid characters that aren't allowed in namespaces. It also automatically removes "Assets" from the namespace, since nearly all C# scripts in Unity projects are placed in the root directory "Assets". 
+
+The other way SmartNS works allows you to specify a "universal" namespace, in which case all C# files will include that namespace, rather than a directory-based namespace.
+
+-- Installation & Settings --
+
+After importing the asset, you should open "Edit -> Project Settings", and adjust the settings for "SmartNS".
+
+ - Script Root - This field defaults to "Assets", and it serves to strip a portion of the directory path off of the generated namespace. If a script is created in "Assets/A/B/C", and Script Root is set to "Assets", it will create a namespace of "A.B.C". If, instead, the Script Root is set to "Assets/A/B", then the resulting namespace will simply be "C". This is useful if you place all of your code in a specific subdirectory which you don't want reflected in the namespace. Note that if you create a C# script in, or higher, than the Script Root, then no namespace will be added to the file.
+
+ - Namespace Prefix - This will be pre-pended to the namespace, after the Script Root setting has stripped off the original beginning. This is where you can specify a company name or project name, or whatever you like, to go at the start of the namespace. For example, if you set this to "Company.Project", and create a script in "Assets/A/B/C", the namespace on that script will be "Company.Project.A.B.C".
+ 
+ - Universal Namespace - This field can be used to apply a static namespace to all files, instead of using the dynamic directory-based approach. If you provide a value for this field, that value will be use, as-is, for the namespace of all files.
+ 
+ - Indent using Spaces - When this is checked, the whitespace that gets inserted into the generated c# scripts will be added as spaces instead of tabs.
+ 
+ - Number of Spaces - If "Indent using Spaces" is enabled, then this is the number of spaces that will be inserted for each "tab".
+ 
+ - Enable Debug Logging - This turns on some extra logging details when SmartNS does something.
+  
+ 
+-- Limitations -
+
+SmartNS doesn't currently affect C# scripts that you have previously created. I might look into some utility in the future that goes through all existing scripts in a project, and adds namespaces as though they had been created with SmartNS installed, but I don't know if/when that will happen.
