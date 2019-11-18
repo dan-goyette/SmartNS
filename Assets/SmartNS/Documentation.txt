@@ -4,6 +4,8 @@ SmartNS 1.0.0
 
 SmartNS is a fairly simple utility that automatically inserts namespaces into C# files as they are created, based on the directory they're created in. For example, if you create a script in the directory Code/Controllers/FirstPerson, the resulting C# class will automatically include the namespace "Code.Controllers.FirstPerson". This allows you to keep your code more organized on larger projects.
 
+You don't need to do anything special when creating the script. The namespace insertion just happens automatically whenever you create a C# script. (For example, via Create -> C# Script, or any other action that generates a C# script in your Unity project.)
+
 By default, SmartNS will turn the directory path into a namespace, automatically correcting for any invalid characters that aren't allowed in namespaces. It also automatically removes "Assets" from the namespace, since nearly all C# scripts in Unity projects are placed in the root directory "Assets". 
 
 The other way SmartNS works allows you to specify a "universal" namespace, in which case all C# files will include that namespace, rather than a directory-based namespace.
