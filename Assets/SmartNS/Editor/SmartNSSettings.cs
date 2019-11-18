@@ -19,7 +19,6 @@ namespace GraviaSoftware.SmartNS.Editor
 
 
     // Create a new type of Settings Asset.
-    [CreateAssetMenu(menuName = AssetMenuName, fileName = "SmartNSSettings")]
     public class SmartNSSettings : ScriptableObject
     {
 #pragma warning disable 0414
@@ -38,7 +37,6 @@ namespace GraviaSoftware.SmartNS.Editor
 #pragma warning restore 0414
 
 
-        public const string AssetMenuName = "SmartNS/Smart NS Project Settings";
         private const string _defaultSmartNSSettingsPath = "Assets/SmartNS/Editor/SmartNSSettings.asset";
 
         internal static SmartNSSettings GetOrCreateSettings()
@@ -53,7 +51,7 @@ namespace GraviaSoftware.SmartNS.Editor
                 smartNSSettings.m_ScriptRoot = "Assets";
                 smartNSSettings.m_NamespacePrefix = "";
                 smartNSSettings.m_UniversalNamespace = "";
-                smartNSSettings.m_IndentUsingSpaces = false;
+                smartNSSettings.m_IndentUsingSpaces = true;
                 smartNSSettings.m_NumberOfSpaces = 4;
                 smartNSSettings.m_EnableDebugLogging = false;
                 AssetDatabase.CreateAsset(smartNSSettings, _defaultSmartNSSettingsPath);
@@ -90,7 +88,6 @@ namespace GraviaSoftware.SmartNS.Editor
             if (smartNSSettingsAssetGuids.Length > 0)
             {
                 smartNSSettings = AssetDatabase.LoadAssetAtPath<SmartNSSettings>(AssetDatabase.GUIDToAssetPath(smartNSSettingsAssetGuids.First()));
-                //Debug.Log($"Found SmartNSSettings at path {AssetDatabase.GUIDToAssetPath(smartNSSettingsAssetGuids.First())}");
             }
 
             return smartNSSettings;
@@ -176,7 +173,7 @@ namespace GraviaSoftware.SmartNS.Editor
         {
             if (IsSettingsAvailable())
             {
-                Debug.Log("Settings Available");
+                //Debug.Log("Settings Available");
                 var provider = new SmartNSSettingsProvider("Project/SmartNS", SettingsScope.Project);
 
                 // Automatically extract all keywords from the Styles.

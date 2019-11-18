@@ -2,5 +2,6 @@
 
 ## [1.0.0] 
  - [Changed] Proper support for Unity 2019 preferences
+ - [Changed] Now supports placing SmartNS scripts/assets wherever you want in your project, instead of directly under 'Assets'
  - [Fixed] Now properly detects line endings used in the C# templates, and uses those, resulting in (hopefully) consistent line endings.
  - [Fixed] Fixed a bug where files created with directories whose name started with a number (for example, "3rd Party") would result in invalid namespace.

@@ -30,11 +30,13 @@ namespace GraviaSoftware.SmartNS.Editor
                     return;
                 }
 
+
+                // We depend on a properly created Project Settings file. Create it now, if it doesn't exist.
                 if (!SmartNSSettings.SettingsFileExists())
                 {
-                    Debug.LogWarning($"No Project Settings asset exists for SmartNS. Create one via the \"Create\" menu under \"{SmartNSSettings.AssetMenuName}\" in order to use SmartNS functionality.");
-                    return;
+                    SmartNSSettings.GetOrCreateSettings();
                 }
+
 
                 var smartNSSettings = SmartNSSettings.GetSerializedSettings();
 
