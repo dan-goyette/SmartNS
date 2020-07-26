@@ -17,4 +17,4 @@ MonoBehaviour:
   m_UniversalNamespace: 
   m_IndentUsingSpaces: 1
   m_NumberOfSpaces: 4
-  m_EnableDebugLogging: 0
+  m_EnableDebugLogging: 1

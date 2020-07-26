@@ -182,6 +182,9 @@ namespace GraviaSoftware.SmartNS.Editor
         {
             string namespaceValue = null;
 
+            // TODO: Do we need something else for Mac?
+            var pathSeparator = "/";
+
             if (string.IsNullOrEmpty(universalNamespaceValue) || string.IsNullOrEmpty(universalNamespaceValue.Trim()))
             {
                 // We're not using a Universal namespace. So, generate the smart namespace.
@@ -189,16 +192,41 @@ namespace GraviaSoftware.SmartNS.Editor
 
                 if (scriptRootValue.Trim().Length > 0)
                 {
+                    // Old Version: Used to require an exact match between the scriptRootValue and the path. 
+                    // That had a defect where using a ScriptRoot of "Assets/ABC", then created a script in "Assets"
+                    // would not strip off the "Assets" from the start of the namespace.
+                    /*
                     var toTrim = scriptRootValue.Trim();
                     if (namespaceValue.StartsWith(toTrim))
                     {
                         WriteDebug(string.Format("Trimming script root '{0}' from start of namespace", toTrim));
                         namespaceValue = namespaceValue.Substring(toTrim.Length);
                     }
+                    */
+
+                    // New Version: Remove as much of the ScriptRoot as exists in the path, as long as the elements line up
+                    // exactly. 
+                    foreach (var scriptRootPathPart in Regex.Split(scriptRootValue.Trim(), pathSeparator))
+                    {
+                        var toTrim = scriptRootPathPart.Trim();
+
+                        // We need to match exactly on each element in the path. We used to just check for StartsWith, but if we 
+                        // had a prefix of "A" when the path was "ABC", we used to strip the A off the ABC, which was wrong.
+                        if (namespaceValue == toTrim || namespaceValue.StartsWith(toTrim + pathSeparator))
+                        {
+                            WriteDebug(string.Format("Trimming script root part '{0}' from start of namespace", toTrim));
+                            namespaceValue = namespaceValue.Substring(toTrim.Length);
+
+                            // If this leaves the namespace with a "/" at the start, remove that.
+                            if (namespaceValue.StartsWith(pathSeparator))
+                            {
+                                namespaceValue = namespaceValue.Substring(1);
+                            }
+                        }
+                    }
+
                 }
 
-                // TODO: Do we need something else for Mac?
-                var pathSeparator = "/";
 
                 var rawPathParts = namespaceValue.Split(pathSeparator.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
 

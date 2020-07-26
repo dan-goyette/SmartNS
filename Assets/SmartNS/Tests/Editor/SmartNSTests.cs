@@ -27,10 +27,10 @@ namespace GraviaSoftware.SmartNS.Tests.Editor
             Assert.IsNull(smartNs.GetNamespaceValue("Assets/IgnoreThis/myScript.cs", "Assets/IgnoreThis", "", ""));
 
 
-            // What should happen this this case? We've put a script at a higher level than the script root.
-            // In that case, we're expect no stripping to occur at all, and we expect the namespace to
-            // contains "Assets"
-            Assert.AreEqual("Assets", smartNs.GetNamespaceValue("Assets/myScript.cs", "Assets/IgnoreThis", "", ""));
+            // If someone enters a ScriptRoot of Assets/ABC, but then creates a script in Assets, ensure that Assets was removed
+            // even though the full Assets/ABC isn't found in the path.
+            Assert.AreEqual("MyPrefix", smartNs.GetNamespaceValue("Assets/myScript.cs", "Assets/ABC", "MyPrefix", ""));
+            Assert.AreEqual("MyPrefix", smartNs.GetNamespaceValue("Assets/ABC/myScript.cs", "Assets/ABC/DEF", "MyPrefix", ""));
         }
 
         [Test]
@@ -50,6 +50,13 @@ namespace GraviaSoftware.SmartNS.Tests.Editor
             Assert.AreEqual("MyPrefix.Assets.SomeFolder", smartNs.GetNamespaceValue("Assets/SomeFolder/myScript.cs", "", "MyPrefix", ""));
             Assert.AreEqual("MyPrefix.SomeFolder", smartNs.GetNamespaceValue("Assets/SomeFolder/myScript.cs", "Assets", "MyPrefix", ""));
             Assert.AreEqual("MyPrefix", smartNs.GetNamespaceValue("Assets/myScript.cs", "Assets", "MyPrefix", ""));
+
+
+
+            // This makes sure that if the script root is only a partial match in its last section, it doesn't remove that last
+            // section.
+            Assert.AreEqual("MyPrefix.ABC", smartNs.GetNamespaceValue("Assets/ABC/myScript.cs", "Assets/A", "MyPrefix", ""));
+            Assert.AreEqual("MyPrefix.A", smartNs.GetNamespaceValue("Assets/A/myScript.cs", "Assets/ABC", "MyPrefix", ""));
 
         }
 
