@@ -7,7 +7,7 @@ using UnityEngine;
 
 // This package changed in 2019.1
 #if UNITY_2019_1_OR_NEWER
-using UnityEngine.UIElements;    
+using UnityEngine.UIElements;
 #elif UNITY_2018_4_OR_NEWER
 using UnityEngine.Experimental.UIElements;
 #endif
@@ -34,6 +34,8 @@ namespace GraviaSoftware.SmartNS.Editor
         [SerializeField]
         private int m_NumberOfSpaces;
         [SerializeField]
+        private string m_DefaultScriptCreationDirectory;
+        [SerializeField]
         private bool m_EnableDebugLogging;
 #pragma warning restore 0414
 
@@ -54,6 +56,7 @@ namespace GraviaSoftware.SmartNS.Editor
                 smartNSSettings.m_UniversalNamespace = "";
                 smartNSSettings.m_IndentUsingSpaces = true;
                 smartNSSettings.m_NumberOfSpaces = 4;
+                smartNSSettings.m_DefaultScriptCreationDirectory = "";
                 smartNSSettings.m_EnableDebugLogging = false;
 
 
@@ -95,7 +98,7 @@ namespace GraviaSoftware.SmartNS.Editor
             if (smartNSSettingsAssetGuids.Length > 1)
             {
                 var paths = string.Join(", ", smartNSSettingsAssetGuids.Select(guid => AssetDatabase.GUIDToAssetPath(guid)));
-                Debug.LogWarning($"Multiple SmartNSSettings.asset files exist in this project. This may lead to confusion, as any of the settings files may be chosen arbitrarily. You should remove all but one of the following so that you only have one SmartNSSettings.asset files: {paths}");
+                Debug.LogWarning(string.Format("Multiple SmartNSSettings.asset files exist in this project. This may lead to confusion, as any of the settings files may be chosen arbitrarily. You should remove all but one of the following so that you only have one SmartNSSettings.asset files: {0}", paths));
             }
 
             if (smartNSSettingsAssetGuids.Length > 0)
@@ -117,7 +120,7 @@ namespace GraviaSoftware.SmartNS.Editor
             if (smartNSSettingsAssetGuids.Length > 1)
             {
                 var paths = string.Join(", ", smartNSSettingsAssetGuids.Select(guid => AssetDatabase.GUIDToAssetPath(guid)));
-                Debug.LogWarning($"Multiple SmartNSSettings.asset files exist in this project. This may lead to confusion, as any of the settings files may be chosen arbitrarily. You should remove all but one of the following so that you only have one SmartNSSettings.asset files: {paths}");
+                Debug.LogWarning(string.Format("Multiple SmartNSSettings.asset files exist in this project. This may lead to confusion, as any of the settings files may be chosen arbitrarily. You should remove all but one of the following so that you only have one SmartNSSettings.asset files: {0}", paths));
             }
 
             if (smartNSSettingsAssetGuids.Length > 0)
@@ -169,6 +172,7 @@ namespace GraviaSoftware.SmartNS.Editor
             public static GUIContent UniversalNamespace = new GUIContent("Universal Namespace", "Instead of using the 'Smart' functionality, based on the current directory, this will place all code into the same namespace you specify here.");
             public static GUIContent IndentUsingSpaces = new GUIContent("Indent using Spaces", "Enables the use of spaces for indentation instead of tabs.");
             public static GUIContent NumberOfSpaces = new GUIContent("Number of Spaces", "How many spaces to use per indentation level.");
+            public static GUIContent DefaultScriptCreationDirectory = new GUIContent("Default Script Creation Dir.", "If you specify a path here, any scripts created directly within 'Assets' will instead be created in the folder you specify. (No need to prefix this with 'Assets'.)");
             public static GUIContent EnableDebugLogging = new GUIContent("Enable Debug Logging", "This turns on some extra logging for SmartNS. Not usually interesting to anyone but the developer.");
         }
 
@@ -211,6 +215,11 @@ namespace GraviaSoftware.SmartNS.Editor
                 EditorGUILayout.PropertyField(m_SmartNSSettings.FindProperty("m_NumberOfSpaces"), Styles.NumberOfSpaces);
             }
             EditorGUILayout.PropertyField(m_SmartNSSettings.FindProperty("m_EnableDebugLogging"), Styles.EnableDebugLogging);
+
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("Experimental");
+            EditorGUILayout.PropertyField(m_SmartNSSettings.FindProperty("m_DefaultScriptCreationDirectory"), Styles.DefaultScriptCreationDirectory);
+
 
             m_SmartNSSettings.ApplyModifiedProperties();
         }

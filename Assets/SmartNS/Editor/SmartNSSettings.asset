@@ -13,8 +13,9 @@ MonoBehaviour:
   m_Name: SmartNSSettings
   m_EditorClassIdentifier: 
   m_ScriptRoot: Assets
-  m_NamespacePrefix: 
+  m_NamespacePrefix: MyPrefix
   m_UniversalNamespace: 
   m_IndentUsingSpaces: 1
   m_NumberOfSpaces: 4
+  m_DefaultScriptCreationDirectory: code
   m_EnableDebugLogging: 1

@@ -1,6 +1,7 @@
 # Changelog 
 
 ## [1.6.0]
+ - [Added] Optional "Experimental" Default Script Creation Directory. If a script is created directly within Assets, instead move it to the specified directory. 
  - [Changed] Fixed an issue where creating a script in a directory "above" the script root would previously not trim off any of the path. Now, it trims off as much as it can. For example, if the Script Root is set to "Assets/A/B/C", and you create a script in "Assets/A", it will remove the "Assets/A" from the namespace.
  - [Fixed] Fixed a bug where partial paths elements would be removed from namespaces inappropriately. For example, if Script Root was "Assets/A", and you created a script in "Assets/ABC", the namespace used to become "BC" (where "Assets/A" was removed from "Assets/ABC", leaving just "BC".) This has been fixed to require an exact match on each of the path elements.
 

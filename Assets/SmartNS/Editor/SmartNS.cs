@@ -13,6 +13,7 @@ namespace GraviaSoftware.SmartNS.Editor
     public class SmartNS : UnityEditor.AssetModificationProcessor
     {
         public const string SmartNSVersionNumber = "1.5.0";
+        private static string PathSeparator = "/";
 
         #region Asset Creation
 
@@ -31,6 +32,69 @@ namespace GraviaSoftware.SmartNS.Editor
                 }
 
 
+                var smartNSSettings = SmartNSSettings.GetSerializedSettings();
+                var scriptRootSettingsValue = smartNSSettings.FindProperty("m_ScriptRoot").stringValue;
+                var prefixSettingsValue = smartNSSettings.FindProperty("m_NamespacePrefix").stringValue;
+                var universalNamespaceSettingsValue = smartNSSettings.FindProperty("m_UniversalNamespace").stringValue;
+                var useSpacesSettingsValue = smartNSSettings.FindProperty("m_IndentUsingSpaces").boolValue;
+                var numberOfSpacesSettingsValue = smartNSSettings.FindProperty("m_NumberOfSpaces").intValue;
+                var defaultScriptCreationDirectorySettingsValue = smartNSSettings.FindProperty("m_DefaultScriptCreationDirectory").stringValue;
+
+
+
+
+                path = path.Replace(".meta", "");
+                path = path.Trim();
+                int index = path.LastIndexOf(".");
+                if (index < 0)
+                {
+                    return;
+                }
+
+
+                // If this script was created directly under the Assets folder, and the settings tell us a default script location
+                // (other than "Assets") move it there.
+                if (!string.IsNullOrWhiteSpace(defaultScriptCreationDirectorySettingsValue))
+                {
+                    var trimmedDefaultDir = defaultScriptCreationDirectorySettingsValue.Trim();
+
+                    if (path.Split('/').Length == 2)
+                    {
+                        var destinationDirectory = trimmedDefaultDir;
+                        if (!destinationDirectory.StartsWith("Assets"))
+                        {
+                            destinationDirectory = string.Join(PathSeparator, "Assets", destinationDirectory);
+                        }
+                        // Replace anu double-slashes.
+                        destinationDirectory = Regex.Replace(destinationDirectory, "//", "/");
+
+                        // Make sure the directory exists
+                        if (AssetDatabase.IsValidFolder(destinationDirectory))
+                        {
+                            var preferredPath = path.Replace("Assets", destinationDirectory);
+
+                            var moveAssetTestResult = AssetDatabase.ValidateMoveAsset(path, preferredPath);
+                            if (string.IsNullOrWhiteSpace(moveAssetTestResult))
+                            {
+                                WriteDebug(string.Format("Moving file from {0} to Default Script Creation Directory: {1}", path, preferredPath));
+                                AssetDatabase.MoveAsset(path, preferredPath);
+                                return;
+                            }
+                            else
+                            {
+                                Debug.LogError(string.Format("SmartNS unable to move script to default script creation directory, '{0}': {1}", destinationDirectory, moveAssetTestResult));
+                            }
+                        }
+                        else
+                        {
+                            Debug.LogError(string.Format("SmartNS unable to move script to default script creation directory, '{0}', because the folder does not exist. Make sure the 'Default Script Creation Directory' specified in the Project Settings is valid.", destinationDirectory));
+                        }
+                    }
+                }
+
+
+
+
                 // We depend on a properly created Project Settings file. Create it now, if it doesn't exist.
                 if (!SmartNSSettings.SettingsFileExists())
                 {
@@ -38,21 +102,8 @@ namespace GraviaSoftware.SmartNS.Editor
                 }
 
 
-                var smartNSSettings = SmartNSSettings.GetSerializedSettings();
-
-                var scriptRootSettingsValue = smartNSSettings.FindProperty("m_ScriptRoot").stringValue;
-                var prefixSettingsValue = smartNSSettings.FindProperty("m_NamespacePrefix").stringValue;
-                var universalNamespaceSettingsValue = smartNSSettings.FindProperty("m_UniversalNamespace").stringValue;
-                var useSpacesSettingsValue = smartNSSettings.FindProperty("m_IndentUsingSpaces").boolValue;
-                var numberOfSpacesSettingsValue = smartNSSettings.FindProperty("m_NumberOfSpaces").intValue;
 
 
-                path = path.Replace(".meta", "");
-                int index = path.LastIndexOf(".");
-                if (index < 0)
-                {
-                    return;
-                }
 
                 WriteDebug(string.Format("Acting on new C# file: {0}", path));
                 index = Application.dataPath.LastIndexOf("Assets");
@@ -178,12 +229,13 @@ namespace GraviaSoftware.SmartNS.Editor
         #endregion
 
 
+
         public static string GetNamespaceValue(string path, string scriptRootValue, string prefixValue, string universalNamespaceValue)
         {
             string namespaceValue = null;
 
             // TODO: Do we need something else for Mac?
-            var pathSeparator = "/";
+
 
             if (string.IsNullOrEmpty(universalNamespaceValue) || string.IsNullOrEmpty(universalNamespaceValue.Trim()))
             {
@@ -206,19 +258,19 @@ namespace GraviaSoftware.SmartNS.Editor
 
                     // New Version: Remove as much of the ScriptRoot as exists in the path, as long as the elements line up
                     // exactly. 
-                    foreach (var scriptRootPathPart in Regex.Split(scriptRootValue.Trim(), pathSeparator))
+                    foreach (var scriptRootPathPart in Regex.Split(scriptRootValue.Trim(), PathSeparator))
                     {
                         var toTrim = scriptRootPathPart.Trim();
 
                         // We need to match exactly on each element in the path. We used to just check for StartsWith, but if we 
                         // had a prefix of "A" when the path was "ABC", we used to strip the A off the ABC, which was wrong.
-                        if (namespaceValue == toTrim || namespaceValue.StartsWith(toTrim + pathSeparator))
+                        if (namespaceValue == toTrim || namespaceValue.StartsWith(toTrim + PathSeparator))
                         {
                             WriteDebug(string.Format("Trimming script root part '{0}' from start of namespace", toTrim));
                             namespaceValue = namespaceValue.Substring(toTrim.Length);
 
                             // If this leaves the namespace with a "/" at the start, remove that.
-                            if (namespaceValue.StartsWith(pathSeparator))
+                            if (namespaceValue.StartsWith(PathSeparator))
                             {
                                 namespaceValue = namespaceValue.Substring(1);
                             }
@@ -228,7 +280,7 @@ namespace GraviaSoftware.SmartNS.Editor
                 }
 
 
-                var rawPathParts = namespaceValue.Split(pathSeparator.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+                var rawPathParts = namespaceValue.Split(PathSeparator.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
 
                 // Ignore the last "part", as that's the file name.
                 var namespaceParts = rawPathParts.Take(rawPathParts.Count() - 1).ToArray();
@@ -294,7 +346,7 @@ namespace GraviaSoftware.SmartNS.Editor
 
             if (namespaceValue.Trim().Length == 0)
             {
-                WriteDebug(string.Format("Namespace is empty, probably because it was placed directly within Script Root. Not adding namespace to script."));
+                //WriteDebug(string.Format("Namespace is empty, probably because it was placed directly within Script Root. Not adding namespace to script."));
                 return null;
             }
 

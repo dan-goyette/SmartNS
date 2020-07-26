@@ -1,4 +1,4 @@
-SmartNS 1.5.0
+SmartNS 1.6.0
 
 -- Overview --
 
@@ -25,6 +25,10 @@ After importing the asset, you should open "Edit -> Project Settings", and adjus
  - Number of Spaces - If "Indent using Spaces" is enabled, then this is the number of spaces that will be inserted for each "tab".
  
  - Enable Debug Logging - This turns on some extra logging details when SmartNS does something.
+ 
+ Experimental
+ 
+ - Default Script Creation Directory - If a script is created directly in the "Assets" directory, move it here instead.
   
  
 -- Limitations -
