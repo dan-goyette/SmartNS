@@ -1,4 +1,4 @@
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using smartNs = GraviaSoftware.SmartNS.Core.Editor.SmartNS;
 
 namespace GraviaSoftware.SmartNS.Core.Tests.Editor

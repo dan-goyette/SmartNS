@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -13,7 +13,7 @@ namespace GraviaSoftware.SmartNS.Core.Editor
     /// </summary>
     public class SmartNS : UnityEditor.AssetModificationProcessor
     {
-        public const string SmartNSVersionNumber = "1.5.0";
+        public const string SmartNSVersionNumber = "2.0.0";
 
 
 
@@ -253,7 +253,15 @@ namespace GraviaSoftware.SmartNS.Core.Editor
 
 
 
-            System.IO.File.WriteAllText(fullFilePath, string.Join(lineEnding, modifiedLines.ToArray()));
+            // Trim final newline of last line.
+            var newFileContents = string.Join(lineEnding, modifiedLines.ToArray());
+            if (newFileContents.EndsWith(lineEnding))
+            {
+                var lastIndex = newFileContents.LastIndexOf(lineEnding);
+                newFileContents = newFileContents.Substring(0, lastIndex);
+            }
+
+            System.IO.File.WriteAllText(fullFilePath, newFileContents);
 
 
         }
