@@ -14,7 +14,7 @@ namespace GraviaSoftware.SmartNS.SmartNS.Editor
     /// </summary>
     public class SmartNS : UnityEditor.AssetModificationProcessor
     {
-        public const string SmartNSVersionNumber = "2.0.0";
+        public const string SmartNSVersionNumber = "2.0.1";
 
 
 
@@ -41,20 +41,6 @@ namespace GraviaSoftware.SmartNS.SmartNS.Editor
                 }
 
 
-                // We depend on a properly created Project Settings file. Create it now, if it doesn't exist.
-                if (!SmartNSSettings.SettingsFileExists())
-                {
-                    SmartNSSettings.GetOrCreateSettings();
-                }
-
-                var smartNSSettings = SmartNSSettings.GetSerializedSettings();
-                var scriptRootSettingsValue = smartNSSettings.FindProperty("m_ScriptRoot").stringValue;
-                var prefixSettingsValue = smartNSSettings.FindProperty("m_NamespacePrefix").stringValue;
-                var universalNamespaceSettingsValue = smartNSSettings.FindProperty("m_UniversalNamespace").stringValue;
-                var useSpacesSettingsValue = smartNSSettings.FindProperty("m_IndentUsingSpaces").boolValue;
-                var numberOfSpacesSettingsValue = smartNSSettings.FindProperty("m_NumberOfSpaces").intValue;
-                var defaultScriptCreationDirectorySettingsValue = smartNSSettings.FindProperty("m_DefaultScriptCreationDirectory").stringValue;
-
 
                 path = path.Replace(".meta", "");
                 path = path.Trim();
@@ -64,58 +50,7 @@ namespace GraviaSoftware.SmartNS.SmartNS.Editor
                     return;
                 }
 
-
-                // If this script was created directly under the Assets folder, and the settings tell us a default script location
-                // (other than "Assets") move it there.
-                if (!string.IsNullOrWhiteSpace(defaultScriptCreationDirectorySettingsValue))
-                {
-                    var trimmedDefaultDir = defaultScriptCreationDirectorySettingsValue.Trim();
-
-                    if (path.Split('/').Length == 2)
-                    {
-                        var destinationDirectory = trimmedDefaultDir;
-                        if (!destinationDirectory.StartsWith("Assets"))
-                        {
-                            destinationDirectory = string.Join(PathSeparator, "Assets", destinationDirectory);
-                        }
-                        // Replace anu double-slashes.
-                        destinationDirectory = Regex.Replace(destinationDirectory, "//", "/");
-
-                        // Make sure the directory exists
-                        if (AssetDatabase.IsValidFolder(destinationDirectory))
-                        {
-                            var preferredPath = path.Replace("Assets", destinationDirectory);
-
-                            var moveAssetTestResult = AssetDatabase.ValidateMoveAsset(path, preferredPath);
-                            if (string.IsNullOrWhiteSpace(moveAssetTestResult))
-                            {
-                                WriteDebug(string.Format("Moving file from {0} to Default Script Creation Directory: {1}", path, preferredPath));
-                                AssetDatabase.MoveAsset(path, preferredPath);
-                                return;
-                            }
-                            else
-                            {
-                                Debug.LogError(string.Format("SmartNS unable to move script to default script creation directory, '{0}': {1}", destinationDirectory, moveAssetTestResult));
-                            }
-                        }
-                        else
-                        {
-                            Debug.LogError(string.Format("SmartNS unable to move script to default script creation directory, '{0}', because the folder does not exist. Make sure the 'Default Script Creation Directory' specified in the Project Settings is valid.", destinationDirectory));
-                        }
-                    }
-                }
-
-
-                UpdateAssetNamespace(path,
-                    scriptRootSettingsValue,
-                    prefixSettingsValue,
-                    universalNamespaceSettingsValue,
-                    useSpacesSettingsValue,
-                    numberOfSpacesSettingsValue);
-
-
-                // Without this, the file won't update in Unity, and won't look right.
-                AssetDatabase.ImportAsset(path);
+                ProcessNamespaceForScriptAtPath(path);
 
             }
             catch (Exception ex)
@@ -123,6 +58,146 @@ namespace GraviaSoftware.SmartNS.SmartNS.Editor
                 Debug.LogError(string.Format("Something went really wrong trying to execute SmartNS: {0}", ex.Message));
                 Debug.LogError(string.Format("SmartNS Failure Stack Trace: {0}", ex.StackTrace));
             }
+        }
+
+
+        #endregion
+
+
+        #region Asset Moved
+        private static HashSet<string> _currentlyMovingAssets = new HashSet<string>();
+        private static AssetMoveResult OnWillMoveAsset(string sourcePath, string destinationPath)
+        {
+            var assetMoveResult = AssetMoveResult.DidNotMove;
+
+            try
+            {
+                if (!_currentlyMovingAssets.Contains(sourcePath))
+                {
+                    if (!SmartNSSettings.SettingsFileExists())
+                    {
+                        SmartNSSettings.GetOrCreateSettings();
+                    }
+
+                    var smartNSSettings = SmartNSSettings.GetSerializedSettings();
+                    var updateNamespacesWhenMovingScripts = smartNSSettings.FindProperty("m_UpdateNamespacesWhenMovingScripts").boolValue;
+
+                    if (updateNamespacesWhenMovingScripts)
+                    {
+                        // We only intercept C# scripts.
+                        if (sourcePath.EndsWith(".cs"))
+                        {
+                            WriteDebug("Moving asset. Source path: " + sourcePath + ". Destination path: " + destinationPath + ".");
+
+                            // Perform operations on the asset and set the value of 'assetMoveResult' accordingly.
+
+                            var validationMessage = AssetDatabase.ValidateMoveAsset(sourcePath, destinationPath);
+
+                            if (string.IsNullOrWhiteSpace(validationMessage))
+                            {
+                                // Keep track of the fact that we're moving this asset, because OnWillMoveAsset will be called again
+                                // when we call MoveAsset below. We keep track of it to avoid recursing into this code again.
+                                _currentlyMovingAssets.Add(sourcePath);
+
+                                // We can move this. So go ahead.
+                                AssetDatabase.MoveAsset(sourcePath, destinationPath);
+
+
+                                // Now post-process the moved script to clean up its namespace.
+                                ProcessNamespaceForScriptAtPath(destinationPath);
+
+                                assetMoveResult = AssetMoveResult.DidMove;
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError(string.Format("Something went really wrong trying to execute SmartNS: {0}", ex.Message));
+                Debug.LogError(string.Format("SmartNS Failure Stack Trace: {0}", ex.StackTrace));
+            }
+            finally
+            {
+                _currentlyMovingAssets.Remove(sourcePath);
+            }
+
+            return assetMoveResult;
+        }
+
+        #endregion
+
+
+
+        private static void ProcessNamespaceForScriptAtPath(string path)
+        {
+            // We depend on a properly created Project Settings file. Create it now, if it doesn't exist.
+            if (!SmartNSSettings.SettingsFileExists())
+            {
+                SmartNSSettings.GetOrCreateSettings();
+            }
+
+            var smartNSSettings = SmartNSSettings.GetSerializedSettings();
+            var scriptRootSettingsValue = smartNSSettings.FindProperty("m_ScriptRoot").stringValue;
+            var prefixSettingsValue = smartNSSettings.FindProperty("m_NamespacePrefix").stringValue;
+            var universalNamespaceSettingsValue = smartNSSettings.FindProperty("m_UniversalNamespace").stringValue;
+            var useSpacesSettingsValue = smartNSSettings.FindProperty("m_IndentUsingSpaces").boolValue;
+            var numberOfSpacesSettingsValue = smartNSSettings.FindProperty("m_NumberOfSpaces").intValue;
+            var defaultScriptCreationDirectorySettingsValue = smartNSSettings.FindProperty("m_DefaultScriptCreationDirectory").stringValue;
+
+
+
+            // If this script was created directly under the Assets folder, and the settings tell us a default script location
+            // (other than "Assets") move it there.
+            if (!string.IsNullOrWhiteSpace(defaultScriptCreationDirectorySettingsValue))
+            {
+                var trimmedDefaultDir = defaultScriptCreationDirectorySettingsValue.Trim();
+
+                if (path.Split('/').Length == 2)
+                {
+                    var destinationDirectory = trimmedDefaultDir;
+                    if (!destinationDirectory.StartsWith("Assets"))
+                    {
+                        destinationDirectory = string.Join(PathSeparator, "Assets", destinationDirectory);
+                    }
+                    // Replace anu double-slashes.
+                    destinationDirectory = Regex.Replace(destinationDirectory, "//", "/");
+
+                    // Make sure the directory exists
+                    if (AssetDatabase.IsValidFolder(destinationDirectory))
+                    {
+                        var preferredPath = path.Replace("Assets", destinationDirectory);
+
+                        var moveAssetTestResult = AssetDatabase.ValidateMoveAsset(path, preferredPath);
+                        if (string.IsNullOrWhiteSpace(moveAssetTestResult))
+                        {
+                            WriteDebug(string.Format("Moving file from {0} to Default Script Creation Directory: {1}", path, preferredPath));
+                            AssetDatabase.MoveAsset(path, preferredPath);
+                            return;
+                        }
+                        else
+                        {
+                            Debug.LogError(string.Format("SmartNS unable to move script to default script creation directory, '{0}': {1}", destinationDirectory, moveAssetTestResult));
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogError(string.Format("SmartNS unable to move script to default script creation directory, '{0}', because the folder does not exist. Make sure the 'Default Script Creation Directory' specified in the Project Settings is valid.", destinationDirectory));
+                    }
+                }
+            }
+
+
+            UpdateAssetNamespace(path,
+                scriptRootSettingsValue,
+                prefixSettingsValue,
+                universalNamespaceSettingsValue,
+                useSpacesSettingsValue,
+                numberOfSpacesSettingsValue);
+
+
+            // Without this, the file won't update in Unity, and won't look right.
+            AssetDatabase.ImportAsset(path);
         }
 
         public static void UpdateAssetNamespace(string assetPath,
@@ -336,9 +411,6 @@ namespace GraviaSoftware.SmartNS.SmartNS.Editor
                 return Environment.NewLine;
             }
         }
-
-        #endregion
-
 
 
         public static string GetNamespaceValue(string path, string scriptRootValue, string prefixValue, string universalNamespaceValue)

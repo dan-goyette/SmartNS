@@ -18,4 +18,5 @@ MonoBehaviour:
   m_IndentUsingSpaces: 1
   m_NumberOfSpaces: 4
   m_DefaultScriptCreationDirectory: 
+  m_UpdateNamespacesWhenMovingScripts: 1
   m_EnableDebugLogging: 0

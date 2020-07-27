@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NUnit;
+using System;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
@@ -36,6 +37,8 @@ namespace GraviaSoftware.SmartNS.SmartNS.Editor
         [SerializeField]
         private string m_DefaultScriptCreationDirectory;
         [SerializeField]
+        private bool m_UpdateNamespacesWhenMovingScripts;
+        [SerializeField]
         private bool m_EnableDebugLogging;
 #pragma warning restore 0414
 
@@ -57,6 +60,7 @@ namespace GraviaSoftware.SmartNS.SmartNS.Editor
                 smartNSSettings.m_IndentUsingSpaces = true;
                 smartNSSettings.m_NumberOfSpaces = 4;
                 smartNSSettings.m_DefaultScriptCreationDirectory = "";
+                smartNSSettings.m_UpdateNamespacesWhenMovingScripts = false;
                 smartNSSettings.m_EnableDebugLogging = false;
 
 
@@ -172,7 +176,8 @@ namespace GraviaSoftware.SmartNS.SmartNS.Editor
             public static GUIContent UniversalNamespace = new GUIContent("Universal Namespace", "Instead of using the 'Smart' functionality, based on the current directory, this will place all code into the same namespace you specify here.");
             public static GUIContent IndentUsingSpaces = new GUIContent("Indent using Spaces", "Enables the use of spaces for indentation instead of tabs.");
             public static GUIContent NumberOfSpaces = new GUIContent("Number of Spaces", "How many spaces to use per indentation level.");
-            public static GUIContent DefaultScriptCreationDirectory = new GUIContent("Default Script Creation Dir.", "If you specify a path here, any scripts created directly within 'Assets' will instead be created in the folder you specify. (No need to prefix this with 'Assets'.)");
+            public static GUIContent DefaultScriptCreationDirectory = new GUIContent("Default Script Creation Directory", "(Experimental) If you specify a path here, any scripts created directly within 'Assets' will instead be created in the folder you specify. (No need to prefix this with 'Assets'.)");
+            public static GUIContent UpdateNamespacesWhenMovingScripts = new GUIContent("Update Namespaces When Moving Scripts", "(Experimental) When exabled, SmartNS will run on any scripts you move within your project, updating their namespaces.");
             public static GUIContent EnableDebugLogging = new GUIContent("Enable Debug Logging", "This turns on some extra logging for SmartNS. Not usually interesting to anyone but the developer.");
         }
 
@@ -204,6 +209,7 @@ namespace GraviaSoftware.SmartNS.SmartNS.Editor
 
             // Preferences GUI
             EditorGUILayout.HelpBox("SmartNS adds a namespace to new C# scripts based on the directory in which they are created. Optionally, a 'Universal' namespace can be used for all scripts.", MessageType.None);
+            EditorGUIUtility.labelWidth = 245.0f;
 
             EditorGUILayout.PropertyField(m_SmartNSSettings.FindProperty("m_ScriptRoot"), Styles.ScriptRoot);
             EditorGUILayout.PropertyField(m_SmartNSSettings.FindProperty("m_NamespacePrefix"), Styles.NamespacePrefix);
@@ -217,9 +223,11 @@ namespace GraviaSoftware.SmartNS.SmartNS.Editor
             EditorGUILayout.PropertyField(m_SmartNSSettings.FindProperty("m_EnableDebugLogging"), Styles.EnableDebugLogging);
 
             EditorGUILayout.Space();
-            EditorGUILayout.LabelField("Experimental");
+            var boldStyle = new GUIStyle();
+            boldStyle.fontStyle = FontStyle.Bold;
+            EditorGUILayout.LabelField("Experimental", boldStyle);
             EditorGUILayout.PropertyField(m_SmartNSSettings.FindProperty("m_DefaultScriptCreationDirectory"), Styles.DefaultScriptCreationDirectory);
-
+            EditorGUILayout.PropertyField(m_SmartNSSettings.FindProperty("m_UpdateNamespacesWhenMovingScripts"), Styles.UpdateNamespacesWhenMovingScripts);
 
             m_SmartNSSettings.ApplyModifiedProperties();
         }
