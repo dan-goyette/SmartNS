@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEditor;
@@ -32,6 +33,12 @@ namespace GraviaSoftware.SmartNS.Editor
                 }
 
 
+                // We depend on a properly created Project Settings file. Create it now, if it doesn't exist.
+                if (!SmartNSSettings.SettingsFileExists())
+                {
+                    SmartNSSettings.GetOrCreateSettings();
+                }
+
                 var smartNSSettings = SmartNSSettings.GetSerializedSettings();
                 var scriptRootSettingsValue = smartNSSettings.FindProperty("m_ScriptRoot").stringValue;
                 var prefixSettingsValue = smartNSSettings.FindProperty("m_NamespacePrefix").stringValue;
@@ -39,8 +46,6 @@ namespace GraviaSoftware.SmartNS.Editor
                 var useSpacesSettingsValue = smartNSSettings.FindProperty("m_IndentUsingSpaces").boolValue;
                 var numberOfSpacesSettingsValue = smartNSSettings.FindProperty("m_NumberOfSpaces").intValue;
                 var defaultScriptCreationDirectorySettingsValue = smartNSSettings.FindProperty("m_DefaultScriptCreationDirectory").stringValue;
-
-
 
 
                 path = path.Replace(".meta", "");
@@ -93,73 +98,129 @@ namespace GraviaSoftware.SmartNS.Editor
                 }
 
 
+                UpdateAssetNamespace(path,
+                    scriptRootSettingsValue,
+                    prefixSettingsValue,
+                    universalNamespaceSettingsValue,
+                    useSpacesSettingsValue,
+                    numberOfSpacesSettingsValue);
 
 
-                // We depend on a properly created Project Settings file. Create it now, if it doesn't exist.
-                if (!SmartNSSettings.SettingsFileExists())
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError(string.Format("Something went really wrong trying to execute SmartNS: {0}", ex.Message));
+                Debug.LogError(string.Format("SmartNS Failure Stack Trace: {0}", ex.StackTrace));
+            }
+        }
+
+        public static bool UpdateAssetNamespace(string assetPath,
+            string scriptRootSettingsValue,
+            string prefixSettingsValue,
+            string universalNamespaceSettingsValue,
+            bool useSpacesSettingsValue,
+            int numberOfSpacesSettingsValue)
+        {
+            bool madeChange = false;
+
+
+            WriteDebug(string.Format("Acting on new C# file: {0}", assetPath));
+            var index = Application.dataPath.LastIndexOf("Assets");
+            var fullFilePath = Application.dataPath.Substring(0, index) + assetPath;
+            WriteDebug(string.Format("Full Path: {0}", fullFilePath));
+            if (!System.IO.File.Exists(fullFilePath))
+            {
+                return false;
+            }
+
+
+            // Generate the namespace.
+            string namespaceValue = GetNamespaceValue(assetPath, scriptRootSettingsValue, prefixSettingsValue, universalNamespaceSettingsValue);
+            if (namespaceValue == null)
+            {
+                return false;
+            }
+
+            // We try to keep line endings consistent. Detect the file's current line endings, and 
+            // from that, determine which kind of line ending we should use.
+            var lineEnding = DetectLineEndings(fullFilePath);
+
+
+            // Read the file contents, so we can insert the namespace line, and indent other lines under it.
+            string[] rawLines = System.IO.File.ReadAllLines(fullFilePath);
+            var modifiedLines = new List<string>();
+
+            // Determining exactly where to insert the namespace is a little tricky. A user could have modified the
+            // default template in any number of ways. And now that we're doing bulk correction, we could end up with 
+            // any weird formatting. The file may or may not contain a namespace declaration already.
+            // Namespaces can even span multiple lines. So our approach is to search the file until 
+            // we find a line starting with "\w*namespace ", and assume that's the start of the namespace declaration.
+            // If we don't find an existing namespace, we use a (hopefully) safest approach of assuming that all 
+            // 'using' statements come first, and that the namespace declaration will appear after the last using statement.
+            // If we DO find a namespace declaration, we will remove is so that we can add a new one at that position. 
+            // Removing the existing namespace has a bit of complexity, though, to make sure we remove all of it, and not too much.
+
+
+            bool hasExistingNamespace = false;
+            for (int rawLineIndex = 0; rawLineIndex < rawLines.Length; rawLineIndex++)
+            {
+                var line = rawLines[rawLineIndex];
+                if (!hasExistingNamespace && line.TrimStart().StartsWith("namespace "))
                 {
-                    SmartNSSettings.GetOrCreateSettings();
-                }
+                    hasExistingNamespace = true;
 
+                    // We found the line on which the namespace begins. We need to remove everything from the start of "namespace" right up 
+                    // until we find the opening curly brace. This might go over many lines, with any amount of other content in between.
+                    // This won't handle really ridiculous cases like:
+                    //     namespace A.B
+                    //     /* Here's a comment embedded in the namespace, which contains a {. Yup, this is valid C# within a namespace declaration. */
+                    //     .C
 
-
-
-
-                WriteDebug(string.Format("Acting on new C# file: {0}", path));
-                index = Application.dataPath.LastIndexOf("Assets");
-                var fullFilePath = Application.dataPath.Substring(0, index) + path;
-                WriteDebug(string.Format("Full Path: {0}", fullFilePath));
-                if (!System.IO.File.Exists(fullFilePath))
-                {
-                    return;
-                }
-
-                // Generate the namespace.
-                string namespaceValue = GetNamespaceValue(path, scriptRootSettingsValue, prefixSettingsValue, universalNamespaceSettingsValue);
-                if (namespaceValue == null)
-                {
-                    return;
-                }
-
-
-                // Read the file contents, so we can insert the namespace line, and indent other lines under it.
-                string[] lines = System.IO.File.ReadAllLines(fullFilePath);
-
-
-                // Determining exactly where to insert the namespace is a little tricky. A user could have modified the
-                // default template in any number of ways. It seems the safest approach is to assume that all 
-                // 'using' statements come first, and that the namespace declaration will appear after the last using statement.
-
-                // Initially ensure that this template doesn't already contain a namespace.
-                foreach (var line in lines)
-                {
-                    if (line.StartsWith("namespace "))
+                    while (rawLineIndex < rawLines.Length)
                     {
-                        WriteDebug(string.Format("This script already contains a namespace declaration ({0}). Skipping.", line));
-                        return;
+                        // Keep looking until we find the curly brace, or we EOF.
+                        if (line.Contains("{"))
+                        {
+                            // We've found the curly brace. Remove everything leading up to it, 
+                            // then add the namespace.
+                            var curlyBraceOnward = line.Substring(line.IndexOf('{'));
+                            modifiedLines.Add(string.Format("namespace {0} {1}", namespaceValue, curlyBraceOnward));
+                            break;
+                        }
+                        else
+                        {
+                            // This line doesn't contains 
+                            rawLineIndex++;
+                            line = rawLines[rawLineIndex];
+                        }
                     }
                 }
+                else
+                {
+                    modifiedLines.Add(line);
+                }
+            }
+
+            if (!hasExistingNamespace)
+            {
+                // We didn't find an existing namespace, so instead we seek out the the last 'using' statement in the file.
 
                 var lastUsingLineIndex = 0;
+
                 // Find the last "using" statement in the file.
-                for (var i = lines.Length - 1; i >= 0; i--)
+                for (var i = modifiedLines.Count - 1; i >= 0; i--)
                 {
-                    if (lines[i].StartsWith("using "))
+                    if (modifiedLines[i].StartsWith("using "))
                     {
                         lastUsingLineIndex = i;
                         break;
                     }
                 }
 
-                // We try to keep line endings consistent. Detect the file's current line endings, and 
-                // from that, determine which kind of line ending we should use.
-                var lineEnding = DetectLineEndings(fullFilePath);
-
-                var modifiedLines = lines.ToList();
-
                 // A blank line, followed by the namespace declaration.
                 modifiedLines.Insert(lastUsingLineIndex + 1, "");
                 modifiedLines.Insert(lastUsingLineIndex + 2, string.Format("namespace {0} {{", namespaceValue));
+
 
                 // Indent all lines in between.
                 for (var i = lastUsingLineIndex + 3; i < modifiedLines.Count; i++)
@@ -170,25 +231,20 @@ namespace GraviaSoftware.SmartNS.Editor
                     modifiedLines[i] = string.Format("{0}{1}", prefix, modifiedLines[i]);
                 }
 
-                // Add the closing brace.
+
+                // Add the closing brace
                 modifiedLines.Add("}");
-
-                // Don't add a namespace if one already exists in the file.
-
-                //fileContent = fileContent.Replace( "#AUTHOR#", AuthorName );
-                //fileContent = fileContent.Replace( "#NAMESPACE#", GetNamespaceForPath( path ) );
-
-                System.IO.File.WriteAllText(fullFilePath, string.Join(lineEnding, modifiedLines.ToArray()));
-
-
-                // Without this, the file won't update in Unity, and won't look right.
-                AssetDatabase.ImportAsset(path);
             }
-            catch (Exception ex)
-            {
-                Debug.LogError(string.Format("Something went really wrong trying to execute SmartNS: {0}", ex.Message));
-                Debug.LogError(string.Format("SmartNS Failure Stack Trace: {0}", ex.StackTrace));
-            }
+
+
+
+            System.IO.File.WriteAllText(fullFilePath, string.Join(lineEnding, modifiedLines.ToArray()));
+
+
+            // Without this, the file won't update in Unity, and won't look right.
+            AssetDatabase.ImportAsset(assetPath);
+
+            return madeChange;
         }
 
         private static string DetectLineEndings(string filePath)

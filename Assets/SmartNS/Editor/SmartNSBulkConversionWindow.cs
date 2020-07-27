@@ -6,11 +6,9 @@ using UnityEngine;
 
 namespace GraviaSoftware.SmartNS.Editor
 {
-
-
     public class SmartNSBulkConversionWindow : EditorWindow
     {
-        [MenuItem("Window/SmartNS Bulk Namespace Conversion")]
+        [MenuItem("Window/SmartNS/Bulk Namespace Conversion...")]
         public static void ShowWindow()
         {
             EditorWindow.GetWindow(typeof(SmartNSBulkConversionWindow));
@@ -21,6 +19,13 @@ namespace GraviaSoftware.SmartNS.Editor
         private bool _isProcessing = false;
         private List<string> _assetsToProcess;
         private int _progressCount;
+
+
+        private string _scriptRootSettingsValue;
+        private string _prefixSettingsValue;
+        private string _universalNamespaceSettingsValue;
+        private bool _useSpacesSettingsValue;
+        private int _numberOfSpacesSettingsValue;
 
         Vector2 scrollPos;
 
@@ -62,6 +67,13 @@ namespace GraviaSoftware.SmartNS.Editor
                         string.Format("I'm sure. Process {0} scripts", _assetsToProcess.Count),
                         "Cancel"))
                     {
+                        var smartNSSettings = SmartNSSettings.GetSerializedSettings();
+                        _scriptRootSettingsValue = smartNSSettings.FindProperty("m_ScriptRoot").stringValue;
+                        _prefixSettingsValue = smartNSSettings.FindProperty("m_NamespacePrefix").stringValue;
+                        _universalNamespaceSettingsValue = smartNSSettings.FindProperty("m_UniversalNamespace").stringValue;
+                        _useSpacesSettingsValue = smartNSSettings.FindProperty("m_IndentUsingSpaces").boolValue;
+                        _numberOfSpacesSettingsValue = smartNSSettings.FindProperty("m_NumberOfSpaces").intValue;
+
                         _progressCount = 0;
                         _isProcessing = true;
                     }
@@ -84,8 +96,12 @@ namespace GraviaSoftware.SmartNS.Editor
                     EditorGUI.ProgressBar(new Rect(3, 45, position.width - 6, 20), (float)_progressCount / (float)_assetsToProcess.Count, string.Format("Processing {0} ({1}/{2})", _assetsToProcess[_progressCount], _progressCount, _assetsToProcess.Count));
                     Debug.Log("Processing " + _assetsToProcess[_progressCount]);
 
-
-
+                    SmartNS.UpdateAssetNamespace(_assetsToProcess[_progressCount],
+                        _scriptRootSettingsValue,
+                        _prefixSettingsValue,
+                        _universalNamespaceSettingsValue,
+                        _useSpacesSettingsValue,
+                        _numberOfSpacesSettingsValue);
 
                     _progressCount++;
                 }

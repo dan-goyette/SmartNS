@@ -30,7 +30,21 @@ After importing the asset, you should open "Edit -> Project Settings", and adjus
  
  - Default Script Creation Directory - If a script is created directly in the "Assets" directory, move it here instead.
   
+-- Bulk Namespace Conversion (Experimental) --
+
+This tool searches through your project and adds/updates script namespaces according to your current SmartNS settings. This is useful when you start using SmartNS on an existing project where your script either don't have namespaces or they have inconsistent namespaces.
+
+Note: This is an experimental feature, and this is a potentially complicated thing to do. There's every possibility that this tool will ruin your scripts. It is highly recommended that you backup your project before doing this, or be sure you can revert any changes this tool makes.
+
+You can find this tool under "Window/SmartNS/Bulk Namespace Conversion...". You can control which directory it will process, with the default being Assets. It will then process every ".cs" script it finds, updating its namespace.
+ 
  
 -- Limitations -
 
-SmartNS doesn't currently affect C# scripts that you have previously created. I might look into some utility in the future that goes through all existing scripts in a project, and adds namespaces as though they had been created with SmartNS installed, but I don't know if/when that will happen.
+SmartNS doesn't handle some fairly complicated namespace usage, such as files that contain multiple namespaces or nested namespaces. To use this tool, your script should contain at most one namespace. Conversion might fail if your script contains something that isn't a namespace but it looks too much like a namespace, such as the raw word "namespace" appearing at the start of a line within a /* */ comment block. It will also break if you have a really ridiculous namespace declaration like the following:
+
+	namespace A.B
+	/* Here's a comment embedded in the namespace, which contains a {. Yup, this is valid C# within a namespace declaration. */
+	.C
+	
+In short, this script handles normal stuff. 
