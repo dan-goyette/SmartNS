@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -17,7 +18,7 @@ namespace GraviaSoftware.SmartNS.SmartNS.Editor
             window.Show();
         }
 
-        private string _baseDirectory = "Assets";
+        private string _baseDirectory = "";
         private bool _isProcessing = false;
         private bool _isPostProcessing = false;
         private List<string> _assetsToProcess;
@@ -30,11 +31,56 @@ namespace GraviaSoftware.SmartNS.SmartNS.Editor
         private bool _useSpacesSettingsValue;
         private int _numberOfSpacesSettingsValue;
 
-        Vector2 scrollPos;
 
+        private static string GetClickedDirFullPath()
+        {
+            if (Selection.assetGUIDs.Length > 0)
+            {
+                var clickedAssetGuid = Selection.assetGUIDs[0];
+                var clickedPath = AssetDatabase.GUIDToAssetPath(clickedAssetGuid);
+                var clickedPathFull = Path.Combine(Directory.GetCurrentDirectory(), clickedPath);
+
+                FileAttributes attr = File.GetAttributes(clickedPathFull);
+
+                if (attr.HasFlag(FileAttributes.Directory))
+                {
+                    // This is a directory. Return it.
+                    return clickedPath;
+                }
+                else
+                {
+                    // Strip off the file name.
+                    var lastForwardSlashIndex = clickedPath.LastIndexOf('/');
+                    var lastBackSlashIndex = clickedPath.LastIndexOf('\\');
+
+                    if (lastForwardSlashIndex >= 0)
+                    {
+                        return clickedPath.Substring(0, lastForwardSlashIndex);
+                    }
+                    else if (lastBackSlashIndex >= 0)
+                    {
+                        return clickedPath.Substring(0, lastBackSlashIndex);
+                    }
+
+                }
+
+            }
+
+            return null;
+        }
 
         void OnGUI()
         {
+            if (string.IsNullOrWhiteSpace(_baseDirectory))
+            {
+                _baseDirectory = GetClickedDirFullPath();
+            }
+
+            if (string.IsNullOrWhiteSpace(_baseDirectory))
+            {
+                _baseDirectory = "Assets";
+            }
+
             GUILayout.Label("SmartNS Bulk Namespace Conversion", EditorStyles.boldLabel);
 
 
