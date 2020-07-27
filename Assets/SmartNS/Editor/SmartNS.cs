@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 
-namespace GraviaSoftware.SmartNS.Core.Editor
+namespace GraviaSoftware.SmartNS.SmartNS.Editor
 {
     /// <summary>
     /// An Asset Creation Post-processor that acts on newly created c# scripts to insert a smart namespace based

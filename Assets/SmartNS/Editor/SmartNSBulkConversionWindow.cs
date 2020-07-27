@@ -4,7 +4,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
-namespace GraviaSoftware.SmartNS.Core.Editor
+namespace GraviaSoftware.SmartNS.SmartNS.Editor
 {
     public class SmartNSBulkConversionWindow : EditorWindow
     {
