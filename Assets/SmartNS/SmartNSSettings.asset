@@ -18,7 +18,5 @@ MonoBehaviour:
   m_IndentUsingSpaces: 1
   m_NumberOfSpaces: 4
   m_UpdateNamespacesWhenMovingScripts: 1
-  m_DirectoryIgnoreList: 'Sandbox/Ignored
-
-    Sandbox/Ignored2'
-  m_EnableDebugLogging: 1
+  m_DirectoryIgnoreList: "Assets/Sandbox/Ignored\nAssets/Sandbox/Ignored2\t"
+  m_EnableDebugLogging: 0

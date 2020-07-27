@@ -1,7 +1,7 @@
 ﻿using NUnit.Framework;
 using smartNs = GraviaSoftware.SmartNS.SmartNS.Editor.SmartNS;
 
-namespace GraviaSoftware.SmartNS.SmartNS.Tests.Editor
+namespace Assets.SmartNS.Tests.Editor
 {
     public class SmartNSTests
     {

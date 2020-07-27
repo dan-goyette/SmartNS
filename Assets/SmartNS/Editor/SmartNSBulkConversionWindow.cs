@@ -138,11 +138,7 @@ See the Documentation.txt file for more information on this. But in general, you
                     }
 
 
-                    _assetsToProcess = AssetDatabase.GetAllAssetPaths()
-                        .Where(s => s.EndsWith(".cs", StringComparison.OrdinalIgnoreCase)
-                            // We ALWAYS require that the scripts be within Assets, regardless of anything else. We don't want to clobber Packages, for example.
-                            && s.StartsWith("Assets", StringComparison.OrdinalIgnoreCase)
-                            && s.StartsWith(assetBasePath, StringComparison.OrdinalIgnoreCase)).ToList();
+                    _assetsToProcess = GetAssetsToProcess(assetBasePath);
 
                     if (EditorUtility.DisplayDialog("Are you sure?",
                         string.Format("This will process a total of {0} scripts found in or under the '{1}' directory, updating their namespaces based on your current SmartNS settings. You should back up your project before doing this, in case something goes wrong. Are you sure you want to do this?", _assetsToProcess.Count, assetBasePath),
@@ -160,6 +156,8 @@ See the Documentation.txt file for more information on this. But in general, you
 
                         // Cache this once now, for performance reasons.
                         _ignoredDirectories = SmartNS.GetIgnoredDirectories();
+
+
 
                         _progressCount = 0;
                         _isProcessing = true;
@@ -225,6 +223,28 @@ See the Documentation.txt file for more information on this. But in general, you
                 }
             }
 
+        }
+
+        private List<string> GetAssetsToProcess(string assetBasePath)
+        {
+
+            var ignoredDirectories = SmartNS.GetIgnoredDirectories();
+
+            Func<string, bool> isInIgnoredDirectory = (assetPath) =>
+            {
+                var indexOfAsset = Application.dataPath.LastIndexOf("Assets");
+                var fullFilePath = Application.dataPath.Substring(0, indexOfAsset) + assetPath;
+                var fileInfo = new FileInfo(fullFilePath);
+                return ignoredDirectories.Contains(fileInfo.Directory.FullName);
+
+            };
+
+            return AssetDatabase.GetAllAssetPaths()
+                    .Where(s => s.EndsWith(".cs", StringComparison.OrdinalIgnoreCase)
+                        // We ALWAYS require that the scripts be within Assets, regardless of anything else. We don't want to clobber Packages, for example.
+                        && s.StartsWith("Assets", StringComparison.OrdinalIgnoreCase)
+                        && s.StartsWith(assetBasePath, StringComparison.OrdinalIgnoreCase)
+                        && !isInIgnoredDirectory(s)).ToList();
         }
 
         void Update()
