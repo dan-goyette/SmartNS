@@ -142,7 +142,7 @@ namespace GraviaSoftware.SmartNS.Core.Editor
                     {
                         var message = "Finishing up. This could take a while, as the project needs to reimport and compile all affected scripts.";
                         GUI.Box(new Rect(0, yPos, position.width, 60), message);
-                        Log("message");
+                        Log(message);
                         _isPostProcessing = true;
                     }
                 }
