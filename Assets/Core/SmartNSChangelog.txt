@@ -1,5 +1,8 @@
 # Changelog 
 
+## [2.0.0]
+ - [Added] (Experimental) Added Bulk Namespace Conversion utility. This will add or update namespaces on existing scripts to match your current SmartNS settings.
+
 ## [1.6.0]
  - [Added] Optional "Experimental" Default Script Creation Directory. If a script is created directly within Assets, instead move it to the specified directory. 
  - [Changed] Fixed an issue where creating a script in a directory "above" the script root would previously not trim off any of the path. Now, it trims off as much as it can. For example, if the Script Root is set to "Assets/A/B/C", and you create a script in "Assets/A", it will remove the "Assets/A" from the namespace.

@@ -1,4 +1,4 @@
-SmartNS 1.6.0
+SmartNS 2.0.0
 
 -- Overview --
 

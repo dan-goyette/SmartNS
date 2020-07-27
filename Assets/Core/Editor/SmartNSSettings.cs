@@ -15,7 +15,7 @@ using UnityEngine.Experimental.UIElements;
 
 
 
-namespace GraviaSoftware.SmartNS.Editor
+namespace GraviaSoftware.SmartNS.Core.Editor
 {
 
 

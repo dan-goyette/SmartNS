@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: SmartNSSettings
   m_EditorClassIdentifier: 
   m_ScriptRoot: Assets
-  m_NamespacePrefix: MyNamespace
+  m_NamespacePrefix: GraviaSoftware.SmartNS
   m_UniversalNamespace: 
   m_IndentUsingSpaces: 1
   m_NumberOfSpaces: 4

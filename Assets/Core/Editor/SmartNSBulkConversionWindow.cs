@@ -4,19 +4,22 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
-namespace GraviaSoftware.SmartNS.Editor
+namespace GraviaSoftware.SmartNS.Core.Editor
 {
     public class SmartNSBulkConversionWindow : EditorWindow
     {
         [MenuItem("Window/SmartNS/Bulk Namespace Conversion...")]
-        public static void ShowWindow()
+        static void Init()
         {
-            EditorWindow.GetWindow(typeof(SmartNSBulkConversionWindow));
+            // Get existing open window or if none, make a new one:
+            SmartNSBulkConversionWindow window = (SmartNSBulkConversionWindow)EditorWindow.GetWindow(typeof(SmartNSBulkConversionWindow));
+            window.titleContent = new GUIContent("Bulk Namespace Converter");
+            window.Show();
         }
-
 
         private string _baseDirectory = "Assets";
         private bool _isProcessing = false;
+        private bool _isPostProcessing = false;
         private List<string> _assetsToProcess;
         private int _progressCount;
 
@@ -29,21 +32,27 @@ namespace GraviaSoftware.SmartNS.Editor
 
         Vector2 scrollPos;
 
+
         void OnGUI()
         {
             GUILayout.Label("SmartNS Bulk Namespace Conversion", EditorStyles.boldLabel);
 
-            var baseDirectoryLabel = new GUIContent("Base Directory", "SmartNS will search all scripts in, or below, this directory. Use this to limit the search to a subdirectory.");
-            if (_isProcessing)
+            int yPos = 20;
+            GUI.Box(new Rect(0, yPos, position.width, 30), "This tool will automatically ");
+
+            yPos += 40;
+
+
+            var baseDirectoryLabel = new GUIContent(string.Format("Base Directory: {0}", _baseDirectory), "SmartNS will search all scripts in, or below, this directory. Use this to limit the search to a subdirectory.");
+
+            if (GUI.Button(new Rect(3, yPos, position.width - 6, 20), baseDirectoryLabel))
             {
-                var baseDirectoryLabelStyle = new GUIStyle(GUI.skin.button);
-                baseDirectoryLabelStyle.normal.textColor = Color.black;
-                EditorGUILayout.LabelField(baseDirectoryLabel, baseDirectoryLabelStyle);
+                var fullPath = EditorUtility.OpenFolderPanel("Choose root folder", _baseDirectory, "");
+                _baseDirectory = fullPath.Replace(Application.dataPath, "Assets");
             }
-            else
-            {
-                _baseDirectory = EditorGUILayout.TextField(baseDirectoryLabel, _baseDirectory);
-            }
+
+
+            yPos += 30;
 
 
 
@@ -52,9 +61,14 @@ namespace GraviaSoftware.SmartNS.Editor
                 var submitButtonContent = new GUIContent("Begin Namespace Conversion", "Begin processing scripts");
                 var submitButtonStyle = new GUIStyle(GUI.skin.button);
                 submitButtonStyle.normal.textColor = new Color(0, .5f, 0);
-                if (GUI.Button(new Rect(10, 70, 350, 30), submitButtonContent, submitButtonStyle))
+                if (GUI.Button(new Rect(position.width / 2 - 350 / 2, yPos, 350, 30), submitButtonContent, submitButtonStyle))
                 {
-                    string assetBasePath = string.IsNullOrWhiteSpace(_baseDirectory) ? "Assets" : _baseDirectory;
+                    string assetBasePath = (string.IsNullOrWhiteSpace(_baseDirectory) ? "Assets" : _baseDirectory).Trim();
+                    if (!assetBasePath.EndsWith("/"))
+                    {
+                        assetBasePath += "/";
+                    }
+
 
                     _assetsToProcess = AssetDatabase.GetAllAssetPaths()
                         .Where(s => s.EndsWith(".cs", StringComparison.OrdinalIgnoreCase)
@@ -76,25 +90,29 @@ namespace GraviaSoftware.SmartNS.Editor
 
                         _progressCount = 0;
                         _isProcessing = true;
+                        _isPostProcessing = false;
                     }
                 }
             }
+
 
             if (_isProcessing)
             {
                 var cancelButtonContent = new GUIContent("Cancel", "Cancel script conversion");
                 var cancelButtonStyle = new GUIStyle(GUI.skin.button);
                 cancelButtonStyle.normal.textColor = new Color(.5f, 0, 0);
-                if (GUI.Button(new Rect(10, 70, 50, 30), cancelButtonContent, cancelButtonStyle))
+                if (GUI.Button(new Rect(position.width / 2 - 50 / 2, yPos, 50, 30), cancelButtonContent, cancelButtonStyle))
                 {
                     _isProcessing = false;
-                    Debug.Log("Cancelled");
+                    Log("Cancelled");
                 }
+
+                yPos += 40;
 
                 if (_progressCount < _assetsToProcess.Count)
                 {
-                    EditorGUI.ProgressBar(new Rect(3, 45, position.width - 6, 20), (float)_progressCount / (float)_assetsToProcess.Count, string.Format("Processing {0} ({1}/{2})", _assetsToProcess[_progressCount], _progressCount, _assetsToProcess.Count));
-                    Debug.Log("Processing " + _assetsToProcess[_progressCount]);
+                    EditorGUI.ProgressBar(new Rect(3, yPos, position.width - 6, 20), (float)_progressCount / (float)_assetsToProcess.Count, string.Format("Processing {0} ({1}/{2})", _assetsToProcess[_progressCount], _progressCount, _assetsToProcess.Count));
+                    Log("Processing " + _assetsToProcess[_progressCount]);
 
                     SmartNS.UpdateAssetNamespace(_assetsToProcess[_progressCount],
                         _scriptRootSettingsValue,
@@ -107,7 +125,26 @@ namespace GraviaSoftware.SmartNS.Editor
                 }
                 else
                 {
-                    _isProcessing = false;
+                    // We use this _isPostProcessing flag to skip over performing the post-processing
+                    // for one frame. This gives the UI a chance to update first.
+                    if (_isPostProcessing)
+                    {
+                        foreach (var path in _assetsToProcess)
+                        {
+                            // Without this, the script won't recompile. This will hang the UI, and that's okay, since the 
+                            // alternative is to essentially kick off a project recompile for every file, which is not a good idea.
+                            AssetDatabase.ImportAsset(path);
+                        }
+
+                        _isProcessing = false;
+                    }
+                    else
+                    {
+                        var message = "Finishing up. This could take a while, as the project needs to reimport and compile all affected scripts.";
+                        GUI.Box(new Rect(0, yPos, position.width, 60), message);
+                        Log("message");
+                        _isPostProcessing = true;
+                    }
                 }
             }
 
@@ -120,6 +157,11 @@ namespace GraviaSoftware.SmartNS.Editor
                 // Without this, we don't get updates every frame, and the whole window just creeps along.
                 Repaint();
             }
+        }
+
+        private void Log(string message)
+        {
+            Debug.Log(string.Format("[SmartNS] {0}", message));
         }
     }
 }

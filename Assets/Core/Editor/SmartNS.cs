@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 
-namespace GraviaSoftware.SmartNS.Editor
+namespace GraviaSoftware.SmartNS.Core.Editor
 {
     /// <summary>
     /// An Asset Creation Post-processor that acts on newly created c# scripts to insert a smart namespace based
@@ -14,6 +14,10 @@ namespace GraviaSoftware.SmartNS.Editor
     public class SmartNS : UnityEditor.AssetModificationProcessor
     {
         public const string SmartNSVersionNumber = "1.5.0";
+
+
+
+        // TODO: Do we need something else for Mac?
         private static string PathSeparator = "/";
 
         #region Asset Creation
@@ -106,6 +110,9 @@ namespace GraviaSoftware.SmartNS.Editor
                     numberOfSpacesSettingsValue);
 
 
+                // Without this, the file won't update in Unity, and won't look right.
+                AssetDatabase.ImportAsset(path);
+
             }
             catch (Exception ex)
             {
@@ -114,15 +121,13 @@ namespace GraviaSoftware.SmartNS.Editor
             }
         }
 
-        public static bool UpdateAssetNamespace(string assetPath,
+        public static void UpdateAssetNamespace(string assetPath,
             string scriptRootSettingsValue,
             string prefixSettingsValue,
             string universalNamespaceSettingsValue,
             bool useSpacesSettingsValue,
             int numberOfSpacesSettingsValue)
         {
-            bool madeChange = false;
-
 
             WriteDebug(string.Format("Acting on new C# file: {0}", assetPath));
             var index = Application.dataPath.LastIndexOf("Assets");
@@ -130,7 +135,7 @@ namespace GraviaSoftware.SmartNS.Editor
             WriteDebug(string.Format("Full Path: {0}", fullFilePath));
             if (!System.IO.File.Exists(fullFilePath))
             {
-                return false;
+                return;
             }
 
 
@@ -138,7 +143,7 @@ namespace GraviaSoftware.SmartNS.Editor
             string namespaceValue = GetNamespaceValue(assetPath, scriptRootSettingsValue, prefixSettingsValue, universalNamespaceSettingsValue);
             if (namespaceValue == null)
             {
-                return false;
+                return;
             }
 
             // We try to keep line endings consistent. Detect the file's current line endings, and 
@@ -182,9 +187,19 @@ namespace GraviaSoftware.SmartNS.Editor
                         if (line.Contains("{"))
                         {
                             // We've found the curly brace. Remove everything leading up to it, 
-                            // then add the namespace.
-                            var curlyBraceOnward = line.Substring(line.IndexOf('{'));
-                            modifiedLines.Add(string.Format("namespace {0} {1}", namespaceValue, curlyBraceOnward));
+                            // then add the namespace. As an optimization against unnecessary edits, if the curly 
+                            // brace starts a line, then we leave it on its own line. Otherwise, we concatenate it with the namespace.
+                            var indexOfCurlyBrace = line.IndexOf('{');
+                            var curlyBraceOnward = line.Substring(indexOfCurlyBrace);
+                            if (indexOfCurlyBrace == 0)
+                            {
+                                modifiedLines.Add(string.Format("namespace {0}", namespaceValue));
+                                modifiedLines.Add(curlyBraceOnward);
+                            }
+                            else
+                            {
+                                modifiedLines.Add(string.Format("namespace {0}{1}", namespaceValue, curlyBraceOnward));
+                            }
                             break;
                         }
                         else
@@ -241,10 +256,6 @@ namespace GraviaSoftware.SmartNS.Editor
             System.IO.File.WriteAllText(fullFilePath, string.Join(lineEnding, modifiedLines.ToArray()));
 
 
-            // Without this, the file won't update in Unity, and won't look right.
-            AssetDatabase.ImportAsset(assetPath);
-
-            return madeChange;
         }
 
         private static string DetectLineEndings(string filePath)
@@ -289,8 +300,6 @@ namespace GraviaSoftware.SmartNS.Editor
         public static string GetNamespaceValue(string path, string scriptRootValue, string prefixValue, string universalNamespaceValue)
         {
             string namespaceValue = null;
-
-            // TODO: Do we need something else for Mac?
 
 
             if (string.IsNullOrEmpty(universalNamespaceValue) || string.IsNullOrEmpty(universalNamespaceValue.Trim()))
@@ -412,7 +421,7 @@ namespace GraviaSoftware.SmartNS.Editor
 
         #region Debug
 
-        private static void WriteDebug(string message)
+        public static void WriteDebug(string message)
         {
             var smartNSSettings = SmartNSSettings.GetSerializedSettings();
             var logDebugMessagesSettingsValue = smartNSSettings.FindProperty("m_EnableDebugLogging").boolValue;
