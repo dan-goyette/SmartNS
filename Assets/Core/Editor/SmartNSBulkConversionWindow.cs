@@ -37,18 +37,36 @@ namespace GraviaSoftware.SmartNS.Core.Editor
         {
             GUILayout.Label("SmartNS Bulk Namespace Conversion", EditorStyles.boldLabel);
 
+
             int yPos = 20;
-            GUI.Box(new Rect(0, yPos, position.width, 30), "This tool will automatically ");
+            GUI.Box(new Rect(0, yPos, position.width, 220), @"This tool will automatically add or correct the namespaces on any C# scripts in your project, making them consistent with your SmartNS settings.
 
-            yPos += 40;
+BE CAREFUL!
 
+This is a potentially destrucive tool. It will modify the actual file contents on your script, possibly incorrectly. There is no 'Undo'. Don't use this tool unless you have an easy way to revert the changes it makes, such as version control.
+
+See the Documentation.txt file for more information on this. But in general, you probably shouldn't run this on 3rd-party code you got from the asset store.");
+
+            yPos += 220;
+
+
+            GUI.Box(new Rect(0, yPos, position.width, 100), @"Instructions:
+ - Click the 'Base Directory' button to choose the base directory. Only scripts in, or under, that directory will be processed.
+ - The click 'Begin Namespace Conversion'
+ - Look in the Unity Console log for errors and other information on the progress.");
+
+            yPos += 100;
 
             var baseDirectoryLabel = new GUIContent(string.Format("Base Directory: {0}", _baseDirectory), "SmartNS will search all scripts in, or below, this directory. Use this to limit the search to a subdirectory.");
 
             if (GUI.Button(new Rect(3, yPos, position.width - 6, 20), baseDirectoryLabel))
             {
                 var fullPath = EditorUtility.OpenFolderPanel("Choose root folder", _baseDirectory, "");
-                _baseDirectory = fullPath.Replace(Application.dataPath, "Assets");
+                _baseDirectory = fullPath.Replace(Application.dataPath, "Assets").Trim();
+                if (string.IsNullOrWhiteSpace(_baseDirectory))
+                {
+                    _baseDirectory = "Assets";
+                }
             }
 
 
@@ -77,7 +95,7 @@ namespace GraviaSoftware.SmartNS.Core.Editor
                             && s.StartsWith(assetBasePath, StringComparison.OrdinalIgnoreCase)).ToList();
 
                     if (EditorUtility.DisplayDialog("Are you sure?",
-                        string.Format("This will process a total of {0} scripts found in or under the '{1}' directory, updating their namespaces based on your current SmartNS settings. You should back up your project before doing this, in case something goes wrong. Really continue?", _assetsToProcess.Count, assetBasePath),
+                        string.Format("This will process a total of {0} scripts found in or under the '{1}' directory, updating their namespaces based on your current SmartNS settings. You should back up your project before doing this, in case something goes wrong. Are you sure you want to do this?", _assetsToProcess.Count, assetBasePath),
                         string.Format("I'm sure. Process {0} scripts", _assetsToProcess.Count),
                         "Cancel"))
                     {

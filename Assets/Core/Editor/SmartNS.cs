@@ -160,8 +160,8 @@ namespace GraviaSoftware.SmartNS.Core.Editor
             // Read the file contents, so we can insert the namespace line, and indent other lines under it.
             // Note that we read the full file contents so we can avoid problems with leading non-breaking zero-width
             // spaces, and so we can detect whether the file ends with a linebreak.
-            string rawFileContent = System.IO.File.ReadAllText(fullFilePath);
-            string[] rawLines = rawFileContent.Split(new[] { lineEnding }, StringSplitOptions.None);
+            string rawFileContents = System.IO.File.ReadAllText(fullFilePath);
+            string[] rawLines = rawFileContents.Split(new[] { lineEnding }, StringSplitOptions.None);
 
 
             // I don't know why there might be zero lines in the file, but we don't do anything if that's the case.
@@ -276,7 +276,7 @@ namespace GraviaSoftware.SmartNS.Core.Editor
 
             // There were cases where final line endings were being stripped by out splitting into an array of strings.
             // So, if the final ended with a line ending, ensure it still does.
-            if (rawFileContent.EndsWith(Environment.NewLine) || rawFileContent.EndsWith(lineEnding))
+            if (rawFileContents.EndsWith(Environment.NewLine) || rawFileContents.EndsWith(lineEnding))
             {
                 if (!(newFileContents.EndsWith(Environment.NewLine) || newFileContents.EndsWith(lineEnding)))
                 {
@@ -285,16 +285,17 @@ namespace GraviaSoftware.SmartNS.Core.Editor
             }
 
             // Similarly, if the file began with "\ufeff", ensure it still does.
-            if (rawFileContent.StartsWith(ByteOrderMarkUtf8))
+            if (rawFileContents.StartsWith(ByteOrderMarkUtf8))
             {
-                newFileContents = ByteOrderMarkUtf8 + rawFileContent;
+                // This is weird. If I test whether newFileContents already starts with a BOM, 
+                // it tells me it does. But if I write the string as-is, the resulting file won't start
+                // with a BOM. So I always need to add the BOM, even if it already has one.
+                // However, if I add two BOMs, then it clear ends up with two BOMs. So, I don't see why
+                // adding one while it has one results in still only having one.
+                newFileContents = ByteOrderMarkUtf8 + newFileContents;
             }
 
-            if (rawFileContent == newFileContents)
-            {
-                Debug.Log("Identical. No need to write.");
-                return;
-            }
+
 
             System.IO.File.WriteAllText(fullFilePath, newFileContents);
 
