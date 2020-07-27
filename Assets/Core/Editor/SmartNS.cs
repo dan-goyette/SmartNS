@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
@@ -19,6 +20,9 @@ namespace GraviaSoftware.SmartNS.Core.Editor
 
         // TODO: Do we need something else for Mac?
         private static string PathSeparator = "/";
+
+        private static string ByteOrderMarkUtf8 = Encoding.UTF8.GetString(Encoding.UTF8.GetPreamble());
+
 
         #region Asset Creation
 
@@ -280,7 +284,17 @@ namespace GraviaSoftware.SmartNS.Core.Editor
                 }
             }
 
+            // Similarly, if the file began with "\ufeff", ensure it still does.
+            if (rawFileContent.StartsWith(ByteOrderMarkUtf8))
+            {
+                newFileContents = ByteOrderMarkUtf8 + rawFileContent;
+            }
 
+            if (rawFileContent == newFileContents)
+            {
+                Debug.Log("Identical. No need to write.");
+                return;
+            }
 
             System.IO.File.WriteAllText(fullFilePath, newFileContents);
 
