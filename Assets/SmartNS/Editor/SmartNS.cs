@@ -66,7 +66,7 @@ namespace GraviaSoftware.SmartNS.SmartNS.Editor
 
         #region Asset Moved
         private static HashSet<string> _currentlyMovingAssets = new HashSet<string>();
-        private static AssetMoveResult OnWillMoveAsset(string sourcePath, string destinationPath)
+        public static AssetMoveResult OnWillMoveAsset(string sourcePath, string destinationPath)
         {
             var assetMoveResult = AssetMoveResult.DidNotMove;
 
@@ -143,11 +143,14 @@ namespace GraviaSoftware.SmartNS.SmartNS.Editor
             var universalNamespaceSettingsValue = smartNSSettings.FindProperty("m_UniversalNamespace").stringValue;
             var useSpacesSettingsValue = smartNSSettings.FindProperty("m_IndentUsingSpaces").boolValue;
             var numberOfSpacesSettingsValue = smartNSSettings.FindProperty("m_NumberOfSpaces").intValue;
-            var defaultScriptCreationDirectorySettingsValue = smartNSSettings.FindProperty("m_DefaultScriptCreationDirectory").stringValue;
+            //var defaultScriptCreationDirectorySettingsValue = smartNSSettings.FindProperty("m_DefaultScriptCreationDirectory").stringValue;
             var directoryDenyListSettingsValue = smartNSSettings.FindProperty("m_DirectoryIgnoreList").stringValue;
 
 
-
+            /*
+             * This has been commented out. It was causing errors when moving files. I'm not sure why yet, but
+             * moving a file in this was would always produce a "File couldn't be read!" error.
+             * 
             // If this script was created directly under the Assets folder, and the settings tell us a default script location
             // (other than "Assets") move it there.
             if (!string.IsNullOrWhiteSpace(defaultScriptCreationDirectorySettingsValue))
@@ -174,6 +177,9 @@ namespace GraviaSoftware.SmartNS.SmartNS.Editor
                         {
                             WriteDebug(string.Format("Moving file from {0} to Default Script Creation Directory: {1}", path, preferredPath));
                             AssetDatabase.MoveAsset(path, preferredPath);
+
+                            AssetDatabase.Refresh();
+
                             return;
                         }
                         else
@@ -187,6 +193,7 @@ namespace GraviaSoftware.SmartNS.SmartNS.Editor
                     }
                 }
             }
+            */
 
 
             UpdateAssetNamespace(path,

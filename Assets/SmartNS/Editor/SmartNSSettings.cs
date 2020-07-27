@@ -34,8 +34,8 @@ namespace GraviaSoftware.SmartNS.SmartNS.Editor
         private bool m_IndentUsingSpaces;
         [SerializeField]
         private int m_NumberOfSpaces;
-        [SerializeField]
-        private string m_DefaultScriptCreationDirectory;
+        //[SerializeField]
+        //private string m_DefaultScriptCreationDirectory;
         [SerializeField]
         private bool m_UpdateNamespacesWhenMovingScripts;
         [SerializeField]
@@ -61,7 +61,7 @@ namespace GraviaSoftware.SmartNS.SmartNS.Editor
                 smartNSSettings.m_UniversalNamespace = "";
                 smartNSSettings.m_IndentUsingSpaces = true;
                 smartNSSettings.m_NumberOfSpaces = 4;
-                smartNSSettings.m_DefaultScriptCreationDirectory = "";
+                //smartNSSettings.m_DefaultScriptCreationDirectory = "";
                 smartNSSettings.m_UpdateNamespacesWhenMovingScripts = false;
                 smartNSSettings.m_DirectoryIgnoreList = "";
                 smartNSSettings.m_EnableDebugLogging = false;
@@ -179,8 +179,8 @@ namespace GraviaSoftware.SmartNS.SmartNS.Editor
             public static GUIContent UniversalNamespace = new GUIContent("Universal Namespace", "Instead of using the 'Smart' functionality, based on the current directory, this will place all code into the same namespace you specify here.");
             public static GUIContent IndentUsingSpaces = new GUIContent("Indent using Spaces", "Enables the use of spaces for indentation instead of tabs.");
             public static GUIContent NumberOfSpaces = new GUIContent("Number of Spaces", "How many spaces to use per indentation level.");
-            public static GUIContent DefaultScriptCreationDirectory = new GUIContent("Default Script Creation Directory", "(Experimental) If you specify a path here, any scripts created directly within 'Assets' will instead be created in the folder you specify. (No need to prefix this with 'Assets'.)");
-            public static GUIContent UpdateNamespacesWhenMovingScripts = new GUIContent("Update Namespaces When Moving Scripts", "(Experimental) When exabled, SmartNS will run on any scripts you move within your project, updating their namespaces.");
+            //public static GUIContent DefaultScriptCreationDirectory = new GUIContent("Default Script Creation Directory", "(Experimental) If you specify a path here, any scripts created directly within 'Assets' will instead be created in the folder you specify. (No need to prefix this with 'Assets'.)");
+            public static GUIContent UpdateNamespacesWhenMovingScripts = new GUIContent("Update Namespaces When Moving Scripts", "(Experimental) When exabled, SmartNS will run on any scripts you move within your project, updating their namespaces. Note: This doesn't work when moving directories that contain scripts.");
             public static GUIContent DirectoryIgnoreList = new GUIContent("Directory Deny List (One directory per line)", "(Experimental) Prevents SmartNS from acting on any scripts located within the following directories, or any child directories. Useful for preventing SmartNS from acting on certain directories, such as where you keep 3rd-party assets.");
             public static GUIContent EnableDebugLogging = new GUIContent("Enable Debug Logging", "This turns on some extra logging for SmartNS. Not usually interesting to anyone but the developer.");
         }
@@ -230,7 +230,7 @@ namespace GraviaSoftware.SmartNS.SmartNS.Editor
             var boldStyle = new GUIStyle();
             boldStyle.fontStyle = FontStyle.Bold;
             EditorGUILayout.LabelField("Experimental", boldStyle);
-            EditorGUILayout.PropertyField(m_SmartNSSettings.FindProperty("m_DefaultScriptCreationDirectory"), Styles.DefaultScriptCreationDirectory);
+            //EditorGUILayout.PropertyField(m_SmartNSSettings.FindProperty("m_DefaultScriptCreationDirectory"), Styles.DefaultScriptCreationDirectory);
             EditorGUILayout.PropertyField(m_SmartNSSettings.FindProperty("m_UpdateNamespacesWhenMovingScripts"), Styles.UpdateNamespacesWhenMovingScripts);
 
             EditorGUILayout.LabelField(Styles.DirectoryIgnoreList);

@@ -3,6 +3,7 @@
 ## [2.0.1]
  - [Added] (Experimental) Option to auto-correct namespace when moving a script from one directory to another.
  - [Added] (Experimental) Added an Ignore list to prevent SmartNS from operating on files in specific directories.
+ - [Removed] It seems that moving files from Assets to other directories automatically was causing some errors. That's no longer a feature.
 
 ## [2.0.0]
  - [Added] (Experimental) Added Bulk Namespace Conversion utility. This will add or update namespaces on existing scripts to match your current SmartNS settings.

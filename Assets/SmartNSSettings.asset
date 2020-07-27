@@ -17,7 +17,8 @@ MonoBehaviour:
   m_UniversalNamespace: 
   m_IndentUsingSpaces: 1
   m_NumberOfSpaces: 4
-  m_DefaultScriptCreationDirectory: 
   m_UpdateNamespacesWhenMovingScripts: 1
-  m_DirectoryIgnoreList: Assets/3rdParty
-  m_EnableDebugLogging: 1
+  m_DirectoryIgnoreList: 'Sandbox/Ignored
+
+    Sandbox/Ignored2'
+  m_EnableDebugLogging: 0
