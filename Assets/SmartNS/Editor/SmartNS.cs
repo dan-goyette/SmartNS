@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -39,7 +40,6 @@ namespace GraviaSoftware.SmartNS.SmartNS.Editor
                 {
                     return;
                 }
-
 
 
                 path = path.Replace(".meta", "");
@@ -144,6 +144,7 @@ namespace GraviaSoftware.SmartNS.SmartNS.Editor
             var useSpacesSettingsValue = smartNSSettings.FindProperty("m_IndentUsingSpaces").boolValue;
             var numberOfSpacesSettingsValue = smartNSSettings.FindProperty("m_NumberOfSpaces").intValue;
             var defaultScriptCreationDirectorySettingsValue = smartNSSettings.FindProperty("m_DefaultScriptCreationDirectory").stringValue;
+            var directoryDenyListSettingsValue = smartNSSettings.FindProperty("m_DirectoryIgnoreList").stringValue;
 
 
 
@@ -193,7 +194,8 @@ namespace GraviaSoftware.SmartNS.SmartNS.Editor
                 prefixSettingsValue,
                 universalNamespaceSettingsValue,
                 useSpacesSettingsValue,
-                numberOfSpacesSettingsValue);
+                numberOfSpacesSettingsValue,
+                directoryDenyListSettingsValue);
 
 
             // Without this, the file won't update in Unity, and won't look right.
@@ -205,17 +207,52 @@ namespace GraviaSoftware.SmartNS.SmartNS.Editor
             string prefixSettingsValue,
             string universalNamespaceSettingsValue,
             bool useSpacesSettingsValue,
-            int numberOfSpacesSettingsValue)
+            int numberOfSpacesSettingsValue,
+            string directoryDenyListSettingsValue)
         {
 
             WriteDebug(string.Format("Acting on new C# file: {0}", assetPath));
             var index = Application.dataPath.LastIndexOf("Assets");
             var fullFilePath = Application.dataPath.Substring(0, index) + assetPath;
+            var fileInfo = new FileInfo(fullFilePath);
             WriteDebug(string.Format("Full Path: {0}", fullFilePath));
             if (!System.IO.File.Exists(fullFilePath))
             {
                 WriteDebug(string.Format("Path doesn't exist: {0}. Exiting.", fullFilePath));
                 return;
+            }
+
+
+            // Make sure we're not supposed to ignore this file.
+            foreach (var directoryPathPart in directoryDenyListSettingsValue.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                var dpp = directoryPathPart;
+                if (dpp.StartsWith("/"))
+                {
+                    dpp = dpp.Remove(0, 1);
+                }
+                if (!dpp.StartsWith("Assets"))
+                {
+                    dpp = "Assets/" + dpp;
+                }
+
+                var fullDenyDirectoryPath = Application.dataPath.Substring(0, index) + dpp;
+                var di = new DirectoryInfo(fullDenyDirectoryPath);
+                if (di.Exists)
+                {
+                    foreach (var file in di.GetFiles("*.*", SearchOption.AllDirectories))
+                    {
+                        if (fileInfo.FullName == file.FullName)
+                        {
+                            WriteDebug(string.Format("File {0} is a child of ignored directory {1}. Exiting.", fullFilePath, fullDenyDirectoryPath));
+                            return;
+                        }
+                    }
+                }
+                else
+                {
+                    Debug.LogWarning(string.Format("Directory {0} in SmartNS Project Setting's Directory Ignore List was not a valid directory.", dpp));
+                }
             }
 
 

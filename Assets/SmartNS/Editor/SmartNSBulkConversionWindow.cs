@@ -30,6 +30,7 @@ namespace GraviaSoftware.SmartNS.SmartNS.Editor
         private string _universalNamespaceSettingsValue;
         private bool _useSpacesSettingsValue;
         private int _numberOfSpacesSettingsValue;
+        private string _directoryDenyListSettingsValue;
 
 
         private static string GetClickedDirFullPath()
@@ -151,6 +152,7 @@ See the Documentation.txt file for more information on this. But in general, you
                         _universalNamespaceSettingsValue = smartNSSettings.FindProperty("m_UniversalNamespace").stringValue;
                         _useSpacesSettingsValue = smartNSSettings.FindProperty("m_IndentUsingSpaces").boolValue;
                         _numberOfSpacesSettingsValue = smartNSSettings.FindProperty("m_NumberOfSpaces").intValue;
+                        _directoryDenyListSettingsValue = smartNSSettings.FindProperty("m_DirectoryIgnoreList").stringValue;
 
                         _progressCount = 0;
                         _isProcessing = true;
@@ -183,7 +185,8 @@ See the Documentation.txt file for more information on this. But in general, you
                         _prefixSettingsValue,
                         _universalNamespaceSettingsValue,
                         _useSpacesSettingsValue,
-                        _numberOfSpacesSettingsValue);
+                        _numberOfSpacesSettingsValue,
+                        _directoryDenyListSettingsValue);
 
                     _progressCount++;
                 }

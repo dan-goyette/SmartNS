@@ -19,4 +19,5 @@ MonoBehaviour:
   m_NumberOfSpaces: 4
   m_DefaultScriptCreationDirectory: 
   m_UpdateNamespacesWhenMovingScripts: 1
-  m_EnableDebugLogging: 0
+  m_DirectoryIgnoreList: Assets/3rdParty
+  m_EnableDebugLogging: 1

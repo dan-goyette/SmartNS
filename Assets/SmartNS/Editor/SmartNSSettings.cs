@@ -39,6 +39,8 @@ namespace GraviaSoftware.SmartNS.SmartNS.Editor
         [SerializeField]
         private bool m_UpdateNamespacesWhenMovingScripts;
         [SerializeField]
+        private string m_DirectoryIgnoreList;
+        [SerializeField]
         private bool m_EnableDebugLogging;
 #pragma warning restore 0414
 
@@ -61,6 +63,7 @@ namespace GraviaSoftware.SmartNS.SmartNS.Editor
                 smartNSSettings.m_NumberOfSpaces = 4;
                 smartNSSettings.m_DefaultScriptCreationDirectory = "";
                 smartNSSettings.m_UpdateNamespacesWhenMovingScripts = false;
+                smartNSSettings.m_DirectoryIgnoreList = "";
                 smartNSSettings.m_EnableDebugLogging = false;
 
 
@@ -178,6 +181,7 @@ namespace GraviaSoftware.SmartNS.SmartNS.Editor
             public static GUIContent NumberOfSpaces = new GUIContent("Number of Spaces", "How many spaces to use per indentation level.");
             public static GUIContent DefaultScriptCreationDirectory = new GUIContent("Default Script Creation Directory", "(Experimental) If you specify a path here, any scripts created directly within 'Assets' will instead be created in the folder you specify. (No need to prefix this with 'Assets'.)");
             public static GUIContent UpdateNamespacesWhenMovingScripts = new GUIContent("Update Namespaces When Moving Scripts", "(Experimental) When exabled, SmartNS will run on any scripts you move within your project, updating their namespaces.");
+            public static GUIContent DirectoryIgnoreList = new GUIContent("Directory Deny List (One directory per line)", "(Experimental) Prevents SmartNS from acting on any scripts located within the following directories, or any child directories. Useful for preventing SmartNS from acting on certain directories, such as where you keep 3rd-party assets.");
             public static GUIContent EnableDebugLogging = new GUIContent("Enable Debug Logging", "This turns on some extra logging for SmartNS. Not usually interesting to anyone but the developer.");
         }
 
@@ -229,8 +233,16 @@ namespace GraviaSoftware.SmartNS.SmartNS.Editor
             EditorGUILayout.PropertyField(m_SmartNSSettings.FindProperty("m_DefaultScriptCreationDirectory"), Styles.DefaultScriptCreationDirectory);
             EditorGUILayout.PropertyField(m_SmartNSSettings.FindProperty("m_UpdateNamespacesWhenMovingScripts"), Styles.UpdateNamespacesWhenMovingScripts);
 
+            EditorGUILayout.LabelField(Styles.DirectoryIgnoreList);
+            ignoreListScrollPos = EditorGUILayout.BeginScrollView(ignoreListScrollPos, GUILayout.Height(120));
+            m_SmartNSSettings.FindProperty("m_DirectoryIgnoreList").stringValue = EditorGUILayout.TextArea(m_SmartNSSettings.FindProperty("m_DirectoryIgnoreList").stringValue);
+            EditorGUILayout.EndScrollView();
+
+
             m_SmartNSSettings.ApplyModifiedProperties();
         }
+
+        Vector2 ignoreListScrollPos;
 
         // Register the SettingsProvider
         [SettingsProvider]
