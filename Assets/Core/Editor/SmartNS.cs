@@ -135,6 +135,7 @@ namespace GraviaSoftware.SmartNS.Core.Editor
             WriteDebug(string.Format("Full Path: {0}", fullFilePath));
             if (!System.IO.File.Exists(fullFilePath))
             {
+                WriteDebug(string.Format("Path doesn't exist: {0}. Exiting.", fullFilePath));
                 return;
             }
 
@@ -143,6 +144,7 @@ namespace GraviaSoftware.SmartNS.Core.Editor
             string namespaceValue = GetNamespaceValue(assetPath, scriptRootSettingsValue, prefixSettingsValue, universalNamespaceSettingsValue);
             if (namespaceValue == null)
             {
+                WriteDebug(string.Format("Generated namespace for {0} is null. Exiting.", fullFilePath));
                 return;
             }
 
@@ -153,6 +155,15 @@ namespace GraviaSoftware.SmartNS.Core.Editor
 
             // Read the file contents, so we can insert the namespace line, and indent other lines under it.
             string[] rawLines = System.IO.File.ReadAllLines(fullFilePath);
+
+            // I don't know why there might be zero lines in the file, but we don't do anything if that's the case.
+            if (rawLines.Length == 0)
+            {
+                WriteDebug(string.Format("File {0} contains no lines. Exiting.", fullFilePath));
+                return;
+            }
+
+
             var modifiedLines = new List<string>();
 
             // Determining exactly where to insert the namespace is a little tricky. A user could have modified the
@@ -252,14 +263,19 @@ namespace GraviaSoftware.SmartNS.Core.Editor
             }
 
 
-
-            // Trim final newline of last line.
             var newFileContents = string.Join(lineEnding, modifiedLines.ToArray());
-            //if (newFileContents.EndsWith(lineEnding))
-            //{
-            //    var lastIndex = newFileContents.LastIndexOf(lineEnding);
-            //    newFileContents = newFileContents.Substring(0, lastIndex);
-            //}
+
+            if (rawLines.Last().EndsWith(Environment.NewLine) || rawLines.Last().EndsWith(lineEnding))
+            {
+                Debug.Log($"!!!!  Yes, {fullFilePath} ends with newline.");
+                if (!(newFileContents.EndsWith(Environment.NewLine) || newFileContents.EndsWith(lineEnding)))
+                {
+                    Debug.Log("And the new stuff doesn't, so adding.");
+                    newFileContents += lineEnding;
+                }
+            }
+
+
 
             System.IO.File.WriteAllText(fullFilePath, newFileContents);
 
