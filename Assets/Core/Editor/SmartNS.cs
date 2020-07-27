@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -154,8 +154,11 @@ namespace GraviaSoftware.SmartNS.Core.Editor
 
 
             // Read the file contents, so we can insert the namespace line, and indent other lines under it.
+            // Note that we read the full file contents so we can avoid problems with leading non-breaking zero-width
+            // spaces, and so we can detect whether the file ends with a linebreak.
             string rawFileContent = System.IO.File.ReadAllText(fullFilePath);
-            string[] rawLines = rawFileContent.Split(Environment.NewLine);
+            string[] rawLines = rawFileContent.Split(new[] { lineEnding }, StringSplitOptions.None);
+
 
             // I don't know why there might be zero lines in the file, but we don't do anything if that's the case.
             if (rawLines.Length == 0)
@@ -263,15 +266,16 @@ namespace GraviaSoftware.SmartNS.Core.Editor
                 modifiedLines.Add("}");
             }
 
-
+            // Combine the modified lines into a single string.
             var newFileContents = string.Join(lineEnding, modifiedLines.ToArray());
 
+
+            // There were cases where final line endings were being stripped by out splitting into an array of strings.
+            // So, if the final ended with a line ending, ensure it still does.
             if (rawFileContent.EndsWith(Environment.NewLine) || rawFileContent.EndsWith(lineEnding))
             {
-                Debug.Log($"!!!!  Yes, {fullFilePath} ends with newline.");
                 if (!(newFileContents.EndsWith(Environment.NewLine) || newFileContents.EndsWith(lineEnding)))
                 {
-                    Debug.Log("And the new stuff doesn't, so adding.");
                     newFileContents += lineEnding;
                 }
             }
