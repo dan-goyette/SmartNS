@@ -154,7 +154,8 @@ namespace GraviaSoftware.SmartNS.Core.Editor
 
 
             // Read the file contents, so we can insert the namespace line, and indent other lines under it.
-            string[] rawLines = System.IO.File.ReadAllLines(fullFilePath);
+            string rawFileContent = System.IO.File.ReadAllText(fullFilePath);
+            string[] rawLines = rawFileContent.Split(Environment.NewLine);
 
             // I don't know why there might be zero lines in the file, but we don't do anything if that's the case.
             if (rawLines.Length == 0)
@@ -265,7 +266,7 @@ namespace GraviaSoftware.SmartNS.Core.Editor
 
             var newFileContents = string.Join(lineEnding, modifiedLines.ToArray());
 
-            if (rawLines.Last().EndsWith(Environment.NewLine) || rawLines.Last().EndsWith(lineEnding))
+            if (rawFileContent.EndsWith(Environment.NewLine) || rawFileContent.EndsWith(lineEnding))
             {
                 Debug.Log($"!!!!  Yes, {fullFilePath} ends with newline.");
                 if (!(newFileContents.EndsWith(Environment.NewLine) || newFileContents.EndsWith(lineEnding)))
