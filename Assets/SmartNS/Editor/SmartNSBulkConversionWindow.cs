@@ -31,6 +31,8 @@ namespace GraviaSoftware.SmartNS.SmartNS.Editor
         private bool _useSpacesSettingsValue;
         private int _numberOfSpacesSettingsValue;
         private string _directoryDenyListSettingsValue;
+        private bool _enableDebugLogging;
+
         private HashSet<string> _ignoredDirectories;
 
 
@@ -154,6 +156,7 @@ See the Documentation.txt file for more information on this. But in general, you
                         _useSpacesSettingsValue = smartNSSettings.FindProperty("m_IndentUsingSpaces").boolValue;
                         _numberOfSpacesSettingsValue = smartNSSettings.FindProperty("m_NumberOfSpaces").intValue;
                         _directoryDenyListSettingsValue = smartNSSettings.FindProperty("m_DirectoryIgnoreList").stringValue;
+                        _enableDebugLogging = smartNSSettings.FindProperty("m_EnableDebugLogging").boolValue;
 
                         // Cache this once now, for performance reasons.
                         _ignoredDirectories = SmartNS.GetIgnoredDirectories();
@@ -184,8 +187,6 @@ See the Documentation.txt file for more information on this. But in general, you
                     EditorGUI.ProgressBar(new Rect(3, yPos, position.width - 6, 20), (float)_progressCount / (float)_assetsToProcess.Count, string.Format("Processing {0} ({1}/{2})", _assetsToProcess[_progressCount], _progressCount, _assetsToProcess.Count));
                     Log("Processing " + _assetsToProcess[_progressCount]);
 
-
-
                     SmartNS.UpdateAssetNamespace(_assetsToProcess[_progressCount],
                         _scriptRootSettingsValue,
                         _prefixSettingsValue,
@@ -193,6 +194,7 @@ See the Documentation.txt file for more information on this. But in general, you
                         _useSpacesSettingsValue,
                         _numberOfSpacesSettingsValue,
                         _directoryDenyListSettingsValue,
+                        _enableDebugLogging,
                         directoryIgnoreList: _ignoredDirectories);
 
                     _progressCount++;

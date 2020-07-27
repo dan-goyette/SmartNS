@@ -21,4 +21,4 @@ MonoBehaviour:
   m_DirectoryIgnoreList: 'Sandbox/Ignored
 
     Sandbox/Ignored2'
-  m_EnableDebugLogging: 0
+  m_EnableDebugLogging: 1

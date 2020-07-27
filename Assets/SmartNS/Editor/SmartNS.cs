@@ -23,7 +23,7 @@ namespace GraviaSoftware.SmartNS.SmartNS.Editor
         private static string PathSeparator = "/";
 
         private static string ByteOrderMarkUtf8 = Encoding.UTF8.GetString(Encoding.UTF8.GetPreamble());
-
+        private static bool _shouldWriteDebugLogInfo = false;
 
         #region Asset Creation
 
@@ -49,6 +49,10 @@ namespace GraviaSoftware.SmartNS.SmartNS.Editor
                 {
                     return;
                 }
+
+                var smartNSSettings = SmartNSSettings.GetSerializedSettings();
+                var enableDebugLogging = smartNSSettings.FindProperty("m_EnableDebugLogging").boolValue;
+                _shouldWriteDebugLogInfo = enableDebugLogging;
 
                 ProcessNamespaceForScriptAtPath(path);
 
@@ -81,6 +85,8 @@ namespace GraviaSoftware.SmartNS.SmartNS.Editor
 
                     var smartNSSettings = SmartNSSettings.GetSerializedSettings();
                     var updateNamespacesWhenMovingScripts = smartNSSettings.FindProperty("m_UpdateNamespacesWhenMovingScripts").boolValue;
+                    var enableDebugLogging = smartNSSettings.FindProperty("m_EnableDebugLogging").boolValue;
+                    _shouldWriteDebugLogInfo = enableDebugLogging;
 
                     if (updateNamespacesWhenMovingScripts)
                     {
@@ -145,6 +151,8 @@ namespace GraviaSoftware.SmartNS.SmartNS.Editor
             var numberOfSpacesSettingsValue = smartNSSettings.FindProperty("m_NumberOfSpaces").intValue;
             //var defaultScriptCreationDirectorySettingsValue = smartNSSettings.FindProperty("m_DefaultScriptCreationDirectory").stringValue;
             var directoryDenyListSettingsValue = smartNSSettings.FindProperty("m_DirectoryIgnoreList").stringValue;
+            var enableDebugLogging = smartNSSettings.FindProperty("m_EnableDebugLogging").boolValue;
+
 
 
             /*
@@ -203,6 +211,7 @@ namespace GraviaSoftware.SmartNS.SmartNS.Editor
                 useSpacesSettingsValue,
                 numberOfSpacesSettingsValue,
                 directoryDenyListSettingsValue,
+                enableDebugLogging,
                 directoryIgnoreList);
 
 
@@ -217,8 +226,11 @@ namespace GraviaSoftware.SmartNS.SmartNS.Editor
             bool useSpacesSettingsValue,
             int numberOfSpacesSettingsValue,
             string directoryDenyListSettingsValue,
+            bool enableDebugLogging,
             HashSet<string> directoryIgnoreList = null)
         {
+
+            _shouldWriteDebugLogInfo = enableDebugLogging;
 
             WriteDebug(string.Format("Acting on new C# file: {0}", assetPath));
             var indexOfAsset = Application.dataPath.LastIndexOf("Assets");
@@ -602,10 +614,8 @@ namespace GraviaSoftware.SmartNS.SmartNS.Editor
 
         public static void WriteDebug(string message)
         {
-            var smartNSSettings = SmartNSSettings.GetSerializedSettings();
-            var logDebugMessagesSettingsValue = smartNSSettings.FindProperty("m_EnableDebugLogging").boolValue;
-
-            if (logDebugMessagesSettingsValue)
+            // Note that we depend on calls to have set _shouldWriteDebugLogInfo, for performance reasons.
+            if (_shouldWriteDebugLogInfo)
             {
                 Debug.Log(string.Format("SmartNS Debug: {0}", message));
             }
