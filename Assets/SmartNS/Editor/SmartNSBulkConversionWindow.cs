@@ -31,6 +31,7 @@ namespace GraviaSoftware.SmartNS.SmartNS.Editor
         private bool _useSpacesSettingsValue;
         private int _numberOfSpacesSettingsValue;
         private string _directoryDenyListSettingsValue;
+        private HashSet<string> _ignoredDirectories;
 
 
         private static string GetClickedDirFullPath()
@@ -154,6 +155,9 @@ See the Documentation.txt file for more information on this. But in general, you
                         _numberOfSpacesSettingsValue = smartNSSettings.FindProperty("m_NumberOfSpaces").intValue;
                         _directoryDenyListSettingsValue = smartNSSettings.FindProperty("m_DirectoryIgnoreList").stringValue;
 
+                        // Cache this once now, for performance reasons.
+                        _ignoredDirectories = SmartNS.GetIgnoredDirectories();
+
                         _progressCount = 0;
                         _isProcessing = true;
                         _isPostProcessing = false;
@@ -180,8 +184,7 @@ See the Documentation.txt file for more information on this. But in general, you
                     EditorGUI.ProgressBar(new Rect(3, yPos, position.width - 6, 20), (float)_progressCount / (float)_assetsToProcess.Count, string.Format("Processing {0} ({1}/{2})", _assetsToProcess[_progressCount], _progressCount, _assetsToProcess.Count));
                     Log("Processing " + _assetsToProcess[_progressCount]);
 
-                    // Cache this once now, for performance reasons.
-                    var ignoredDirectories = SmartNS.GetIgnoredDirectories();
+
 
                     SmartNS.UpdateAssetNamespace(_assetsToProcess[_progressCount],
                         _scriptRootSettingsValue,
@@ -190,7 +193,7 @@ See the Documentation.txt file for more information on this. But in general, you
                         _useSpacesSettingsValue,
                         _numberOfSpacesSettingsValue,
                         _directoryDenyListSettingsValue,
-                        directoryIgnoreList: ignoredDirectories);
+                        directoryIgnoreList: _ignoredDirectories);
 
                     _progressCount++;
                 }
@@ -208,6 +211,7 @@ See the Documentation.txt file for more information on this. But in general, you
                         }
 
                         _isProcessing = false;
+                        _ignoredDirectories = null;
                     }
                     else
                     {

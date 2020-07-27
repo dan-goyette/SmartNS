@@ -28,8 +28,10 @@ After importing the asset, you should open "Edit -> Project Settings", and adjus
  
  Experimental
  
- - Default Script Creation Directory - If a script is created directly in the "Assets" directory, move it here instead.
-  
+ - Update Namespaces when Moving Scripts - If you drag a script from one directory to another, SmartNS will automatically update its namespace if this option is enabled.
+ 
+ - Directory Deny List - You can list directories that should be ignored by SmartNS when creating files within the directory or moving files into the directory. This includes all subdirectories.
+ 
 -- Bulk Namespace Conversion (Experimental) --
 
 This tool searches through your project and adds/updates script namespaces according to your current SmartNS settings. This is useful when you start using SmartNS on an existing project where your script either don't have namespaces or they have inconsistent namespaces.
@@ -48,3 +50,5 @@ SmartNS doesn't handle some fairly complicated namespace usage, such as files th
 	.C
 	
 In short, this script handles normal stuff. 
+
+SmartNS also can't do anything if you drag a directory of scripts from one directory to another in your project.
