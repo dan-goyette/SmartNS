@@ -129,7 +129,7 @@ namespace GraviaSoftware.SmartNS.SmartNS.Editor
 
 
 
-        private static void ProcessNamespaceForScriptAtPath(string path)
+        private static void ProcessNamespaceForScriptAtPath(string path, HashSet<string> directoryIgnoreList = null)
         {
             // We depend on a properly created Project Settings file. Create it now, if it doesn't exist.
             if (!SmartNSSettings.SettingsFileExists())
@@ -202,7 +202,8 @@ namespace GraviaSoftware.SmartNS.SmartNS.Editor
                 universalNamespaceSettingsValue,
                 useSpacesSettingsValue,
                 numberOfSpacesSettingsValue,
-                directoryDenyListSettingsValue);
+                directoryDenyListSettingsValue,
+                directoryIgnoreList);
 
 
             // Without this, the file won't update in Unity, and won't look right.
@@ -215,12 +216,13 @@ namespace GraviaSoftware.SmartNS.SmartNS.Editor
             string universalNamespaceSettingsValue,
             bool useSpacesSettingsValue,
             int numberOfSpacesSettingsValue,
-            string directoryDenyListSettingsValue)
+            string directoryDenyListSettingsValue,
+            HashSet<string> directoryIgnoreList = null)
         {
 
             WriteDebug(string.Format("Acting on new C# file: {0}", assetPath));
-            var index = Application.dataPath.LastIndexOf("Assets");
-            var fullFilePath = Application.dataPath.Substring(0, index) + assetPath;
+            var indexOfAsset = Application.dataPath.LastIndexOf("Assets");
+            var fullFilePath = Application.dataPath.Substring(0, indexOfAsset) + assetPath;
             var fileInfo = new FileInfo(fullFilePath);
             WriteDebug(string.Format("Full Path: {0}", fullFilePath));
             if (!System.IO.File.Exists(fullFilePath))
@@ -229,36 +231,13 @@ namespace GraviaSoftware.SmartNS.SmartNS.Editor
                 return;
             }
 
-
-            // Make sure we're not supposed to ignore this file.
-            foreach (var directoryPathPart in directoryDenyListSettingsValue.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries))
+            if (directoryIgnoreList == null)
             {
-                var dpp = directoryPathPart;
-                if (dpp.StartsWith("/"))
+                directoryIgnoreList = GetIgnoredDirectories();
+                if (directoryIgnoreList.Contains(fileInfo.Directory.FullName))
                 {
-                    dpp = dpp.Remove(0, 1);
-                }
-                if (!dpp.StartsWith("Assets"))
-                {
-                    dpp = "Assets/" + dpp;
-                }
-
-                var fullDenyDirectoryPath = Application.dataPath.Substring(0, index) + dpp;
-                var di = new DirectoryInfo(fullDenyDirectoryPath);
-                if (di.Exists)
-                {
-                    foreach (var file in di.GetFiles("*.*", SearchOption.AllDirectories))
-                    {
-                        if (fileInfo.FullName == file.FullName)
-                        {
-                            WriteDebug(string.Format("File {0} is a child of ignored directory {1}. Exiting.", fullFilePath, fullDenyDirectoryPath));
-                            return;
-                        }
-                    }
-                }
-                else
-                {
-                    Debug.LogWarning(string.Format("Directory {0} in SmartNS Project Setting's Directory Ignore List was not a valid directory.", dpp));
+                    WriteDebug(string.Format("File {0} is a child of an ignored directory. Exiting.", fullFilePath));
+                    return;
                 }
             }
 
@@ -578,6 +557,46 @@ namespace GraviaSoftware.SmartNS.SmartNS.Editor
             return namespaceValue;
         }
 
+        /// <summary>
+        /// Returns the list of directories that should be ignored.
+        /// </summary>
+        /// <returns></returns>
+        public static HashSet<string> GetIgnoredDirectories()
+        {
+            var retval = new HashSet<string>();
+            var smartNSSettings = SmartNSSettings.GetSerializedSettings();
+            var directoryDenyListSettingsValue = smartNSSettings.FindProperty("m_DirectoryIgnoreList").stringValue;
+
+            foreach (var directoryPathPart in directoryDenyListSettingsValue.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                var dpp = directoryPathPart;
+                if (dpp.StartsWith("/"))
+                {
+                    dpp = dpp.Remove(0, 1);
+                }
+                if (!dpp.StartsWith("Assets"))
+                {
+                    dpp = "Assets/" + dpp;
+                }
+
+                var fullDenyDirectoryPath = Application.dataPath.Substring(0, Application.dataPath.LastIndexOf("Assets")) + dpp;
+                var di = new DirectoryInfo(fullDenyDirectoryPath);
+                if (di.Exists)
+                {
+                    retval.Add(di.FullName);
+                    foreach (var subDir in di.GetDirectories("*.*", SearchOption.AllDirectories))
+                    {
+                        retval.Add(subDir.FullName);
+                    }
+                }
+                else
+                {
+                    Debug.LogWarning(string.Format("Directory {0} in SmartNS Project Setting's Directory Ignore List was not a valid directory.", dpp));
+                }
+            }
+
+            return retval;
+        }
 
         #region Debug
 

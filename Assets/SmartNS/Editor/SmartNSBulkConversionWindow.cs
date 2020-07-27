@@ -180,13 +180,17 @@ See the Documentation.txt file for more information on this. But in general, you
                     EditorGUI.ProgressBar(new Rect(3, yPos, position.width - 6, 20), (float)_progressCount / (float)_assetsToProcess.Count, string.Format("Processing {0} ({1}/{2})", _assetsToProcess[_progressCount], _progressCount, _assetsToProcess.Count));
                     Log("Processing " + _assetsToProcess[_progressCount]);
 
+                    // Cache this once now, for performance reasons.
+                    var ignoredDirectories = SmartNS.GetIgnoredDirectories();
+
                     SmartNS.UpdateAssetNamespace(_assetsToProcess[_progressCount],
                         _scriptRootSettingsValue,
                         _prefixSettingsValue,
                         _universalNamespaceSettingsValue,
                         _useSpacesSettingsValue,
                         _numberOfSpacesSettingsValue,
-                        _directoryDenyListSettingsValue);
+                        _directoryDenyListSettingsValue,
+                        directoryIgnoreList: ignoredDirectories);
 
                     _progressCount++;
                 }
