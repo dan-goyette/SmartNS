@@ -23,6 +23,7 @@ namespace GraviaSoftware.SmartNS.SmartNS.Editor
         private bool _isPostProcessing = false;
         private List<string> _assetsToProcess;
         private int _progressCount;
+        private int _cleanupCount;
 
 
         private string _scriptRootSettingsValue;
@@ -160,6 +161,7 @@ See the Documentation.txt file for more information on this. But in general, you
 
 
                         _progressCount = 0;
+                        _cleanupCount = 0;
                         _isProcessing = true;
                         _isPostProcessing = false;
                     }
@@ -175,6 +177,8 @@ See the Documentation.txt file for more information on this. But in general, you
                 if (GUI.Button(new Rect(position.width / 2 - 50 / 2, yPos, 50, 30), cancelButtonContent, cancelButtonStyle))
                 {
                     _isProcessing = false;
+                    _progressCount = 0;
+                    _cleanupCount = 0;
                     Log("Cancelled");
                 }
 
@@ -201,23 +205,43 @@ See the Documentation.txt file for more information on this. But in general, you
                 {
                     // We use this _isPostProcessing flag to skip over performing the post-processing
                     // for one frame. This gives the UI a chance to update first.
+
+                    var message = "Finishing up. This could take a while, as the project needs to reimport and compile all affected scripts.";
+                    GUI.Box(new Rect(0, yPos, position.width, 60), message);
+                    Log(message);
+
+                    yPos += 60;
+
                     if (_isPostProcessing)
                     {
-                        foreach (var path in _assetsToProcess)
+                        if (_cleanupCount < _assetsToProcess.Count)
                         {
-                            // Without this, the script won't recompile. This will hang the UI, and that's okay, since the 
-                            // alternative is to essentially kick off a project recompile for every file, which is not a good idea.
-                            AssetDatabase.ImportAsset(path);
+                            EditorGUI.ProgressBar(new Rect(3, yPos, position.width - 6, 20), (float)_cleanupCount / (float)_assetsToProcess.Count, string.Format("Finishing up {0} ({1}/{2})", _assetsToProcess[_cleanupCount], _cleanupCount, _assetsToProcess.Count));
+                            Log("Cleaning up " + _assetsToProcess[_cleanupCount]);
+
+                            AssetDatabase.ImportAsset(_assetsToProcess[_cleanupCount]);
+
+                            _cleanupCount++;
+                        }
+                        else
+                        {
+                            _progressCount = 0;
+                            _cleanupCount = 0;
+                            _isProcessing = false;
+                            _ignoredDirectories = null;
                         }
 
-                        _isProcessing = false;
-                        _ignoredDirectories = null;
+                        //foreach (var path in _assetsToProcess)
+                        //{
+                        //    // Without this, the script won't recompile. This will hang the UI, and that's okay, since the 
+                        //    // alternative is to essentially kick off a project recompile for every file, which is not a good idea.
+                        //    AssetDatabase.ImportAsset(path);
+                        //}
+
                     }
                     else
                     {
-                        var message = "Finishing up. This could take a while, as the project needs to reimport and compile all affected scripts.";
-                        GUI.Box(new Rect(0, yPos, position.width, 60), message);
-                        Log(message);
+
                         _isPostProcessing = true;
                     }
                 }
@@ -227,7 +251,6 @@ See the Documentation.txt file for more information on this. But in general, you
 
         private List<string> GetAssetsToProcess(string assetBasePath)
         {
-
             var ignoredDirectories = SmartNS.GetIgnoredDirectories();
 
             Func<string, bool> isInIgnoredDirectory = (assetPath) =>

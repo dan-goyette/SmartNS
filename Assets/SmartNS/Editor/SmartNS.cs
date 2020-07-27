@@ -581,7 +581,7 @@ namespace GraviaSoftware.SmartNS.SmartNS.Editor
 
             foreach (var directoryPathPart in directoryDenyListSettingsValue.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries))
             {
-                var dpp = directoryPathPart;
+                var dpp = directoryPathPart.Trim();
                 if (dpp.StartsWith("/"))
                 {
                     dpp = dpp.Remove(0, 1);
