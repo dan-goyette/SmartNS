@@ -20,6 +20,20 @@ namespace GraviaSoftware.SmartNS.SmartNS.Editor
     // Create a new type of Settings Asset.
     public class SmartNSSettings : ScriptableObject
     {
+        public const string SCRIPT_ROOT_TOOLTIP = "Whatever you place here will be stripped off the beginning of the namespace. Normally this should be 'Assets', as Unity will automatically place new scripts in '/Assets'. But if you keep all your scripts in 'Assets/Code', you could out 'Assets/Code' here to strip that out of the namespace. Note that any scripts created at the level of the Script Root will not be given a namespace, unless Universal namespacing is used.";
+        public const string NAMESPACE_PREFIX_TOOLTIP = "This will be added to the beginning of the namespace. This is useful for placing the project or company name in your namespace.";
+        public const string UNIVERSAL_NAMESPACE_TOOLTIP = "Instead of using the 'Smart' functionality, based on the current directory, this will place all code into the same namespace you specify here.";
+        public const string INDENT_USING_SPACES_TOOLTIP = "Enables the use of spaces for indentation instead of tabs.";
+        public const string NUMBER_OF_SPACES_TOOLTIP = "How many spaces to use per indentation level.";
+        public const string UPDATE_NAMESPACES_WHEN_MOVING_SCRIPTS_TOOLTIP = "(Experimental) When exabled, SmartNS will run on any scripts you move within your project, updating their namespaces. Note: This doesn't work when moving directories that contain scripts.";
+        public const string DIRECTORY_IGNORE_LIST_TOOLTIP = "(Experimental) Prevents SmartNS from acting on any scripts located within the following directories, or any child directories. Useful for preventing SmartNS from acting on certain directories, such as where you keep 3rd-party assets.";
+        public const string ENABLE_DEBUG_LOGGING_TOOLTIP = "This turns on some extra logging for SmartNS. Not usually interesting to anyone but the developer.";
+
+
+
+
+
+
 #pragma warning disable 0414
         [SerializeField]
         private string m_ScriptRoot;
@@ -165,21 +179,28 @@ namespace GraviaSoftware.SmartNS.SmartNS.Editor
     // Create SmartNSSettingsProvider by deriving from SettingsProvider:
     public class SmartNSSettingsProvider : SettingsProvider
     {
-
-
         private SerializedObject m_SmartNSSettings;
+
+
+
+
+
+
+
+
+
 
         class Styles
         {
-            public static GUIContent ScriptRoot = new GUIContent("Script Root", "Whatever you place here will be stripped off the beginning of the namespace. Normally this should be 'Assets', as Unity will automatically place new scripts in '/Assets'. But if you keep all your scripts in 'Assets/Code', you could out 'Assets/Code' here to strip that out of the namespace. Note that any scripts created at the level of the Script Root will not be given a namespace, unless Universal namespacing is used.");
-            public static GUIContent NamespacePrefix = new GUIContent("Namespace Prefix", "This will be added to the beginning of the namespace. This is useful for placing the project or company name in your namespace.");
-            public static GUIContent UniversalNamespace = new GUIContent("Universal Namespace", "Instead of using the 'Smart' functionality, based on the current directory, this will place all code into the same namespace you specify here.");
-            public static GUIContent IndentUsingSpaces = new GUIContent("Indent using Spaces", "Enables the use of spaces for indentation instead of tabs.");
-            public static GUIContent NumberOfSpaces = new GUIContent("Number of Spaces", "How many spaces to use per indentation level.");
+            public static GUIContent ScriptRoot = new GUIContent("Script Root", SmartNSSettings.SCRIPT_ROOT_TOOLTIP);
+            public static GUIContent NamespacePrefix = new GUIContent("Namespace Prefix", SmartNSSettings.NAMESPACE_PREFIX_TOOLTIP);
+            public static GUIContent UniversalNamespace = new GUIContent("Universal Namespace", SmartNSSettings.UNIVERSAL_NAMESPACE_TOOLTIP);
+            public static GUIContent IndentUsingSpaces = new GUIContent("Indent using Spaces", SmartNSSettings.INDENT_USING_SPACES_TOOLTIP);
+            public static GUIContent NumberOfSpaces = new GUIContent("Number of Spaces", SmartNSSettings.NUMBER_OF_SPACES_TOOLTIP);
             //public static GUIContent DefaultScriptCreationDirectory = new GUIContent("Default Script Creation Directory", "(Experimental) If you specify a path here, any scripts created directly within 'Assets' will instead be created in the folder you specify. (No need to prefix this with 'Assets'.)");
-            public static GUIContent UpdateNamespacesWhenMovingScripts = new GUIContent("Update Namespaces When Moving Scripts", "(Experimental) When exabled, SmartNS will run on any scripts you move within your project, updating their namespaces. Note: This doesn't work when moving directories that contain scripts.");
-            public static GUIContent DirectoryIgnoreList = new GUIContent("Directory Deny List (One directory per line)", "(Experimental) Prevents SmartNS from acting on any scripts located within the following directories, or any child directories. Useful for preventing SmartNS from acting on certain directories, such as where you keep 3rd-party assets.");
-            public static GUIContent EnableDebugLogging = new GUIContent("Enable Debug Logging", "This turns on some extra logging for SmartNS. Not usually interesting to anyone but the developer.");
+            public static GUIContent UpdateNamespacesWhenMovingScripts = new GUIContent("Update Namespaces When Moving Scripts", SmartNSSettings.UPDATE_NAMESPACES_WHEN_MOVING_SCRIPTS_TOOLTIP);
+            public static GUIContent DirectoryIgnoreList = new GUIContent("Directory Deny List (One directory per line)", SmartNSSettings.DIRECTORY_IGNORE_LIST_TOOLTIP);
+            public static GUIContent EnableDebugLogging = new GUIContent("Enable Debug Logging", SmartNSSettings.ENABLE_DEBUG_LOGGING_TOOLTIP);
         }
 
         public SmartNSSettingsProvider(string path, SettingsScope scope = SettingsScope.Project)

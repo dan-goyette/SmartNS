@@ -303,6 +303,9 @@ namespace GraviaSoftware.SmartNS.SmartNS.Editor
                 {
                     hasExistingNamespace = true;
 
+                    WriteDebug(string.Format("Existing namespace found on line index {0}", rawLineIndex));
+
+
                     // We found the line on which the namespace begins. We need to remove everything from the start of "namespace" right up 
                     // until we find the opening curly brace. This might go over many lines, with any amount of other content in between.
                     // This won't handle really ridiculous cases like:
