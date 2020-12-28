@@ -50,3 +50,5 @@ SmartNS doesn't handle some fairly complicated namespace usage, such as files th
 	.C
 	
 In short, this script handles normal stuff. 
+
+SmartNS doesn't interact with the new Unity 2020.2 Assembly Definition Root Namespace feature (https://unity3d.com/unity/whats-new/2020.2.0). If you have SmartNS installed in your project, SmartNS appears to take precendece over Unity's approach. The result is that you probably shouldn't use the Assembly Definition Root Namespace built-in feature when using SmartNS.
