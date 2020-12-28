@@ -50,5 +50,3 @@ SmartNS doesn't handle some fairly complicated namespace usage, such as files th
 	.C
 	
 In short, this script handles normal stuff. 
-
-SmartNS also can't do anything if you drag a directory of scripts from one directory to another in your project.
