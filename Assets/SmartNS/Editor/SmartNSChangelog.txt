@@ -1,5 +1,8 @@
 # Changelog 
 
+## [2.0.2]
+ - [Changed] Removed some unnecessary default values from SmartNSSettings.asset.
+
 ## [2.0.1]
  - [Added] (Experimental) Option to auto-correct namespace when moving a script from one directory to another.
  - [Added] Opening the Bulk Namespace Conversion utility will now pre-select the directory of the currently selected asset.

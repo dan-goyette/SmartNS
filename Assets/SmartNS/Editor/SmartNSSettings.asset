@@ -13,10 +13,10 @@ MonoBehaviour:
   m_Name: SmartNSSettings
   m_EditorClassIdentifier: 
   m_ScriptRoot: Assets
-  m_NamespacePrefix: GraviaSoftware.SmartNS
+  m_NamespacePrefix: 
   m_UniversalNamespace: 
   m_IndentUsingSpaces: 1
   m_NumberOfSpaces: 4
   m_UpdateNamespacesWhenMovingScripts: 1
-  m_DirectoryIgnoreList: "Assets/Sandbox/Ignored\nAssets/Sandbox/Ignored2\t"
+  m_DirectoryIgnoreList: 
   m_EnableDebugLogging: 0

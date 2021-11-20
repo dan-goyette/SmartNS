@@ -15,11 +15,11 @@ C:/Users/Dan/Documents/GitHub/SmartNS
 -logFile
 Logs/AssetImportWorker0.log
 -srvPort
-62499
+59489
 Successfully changed project path to: C:/Users/Dan/Documents/GitHub/SmartNS
 C:/Users/Dan/Documents/GitHub/SmartNS
 Using Asset Import Pipeline V2.
-Refreshing native plugins compatible for Editor in 18.84 ms, found 0 plugins.
+Refreshing native plugins compatible for Editor in 19.35 ms, found 0 plugins.
 Preloading 0 native plugins for Editor in 0.00 ms.
 Initialize engine version: 2020.2.1f1 (270dd8c3da1c)
 [Subsystems] Discovering subsystems at path C:/Program Files/Unity/Hub/Editor/2020.2.1f1/Editor/Data/Resources/UnitySubsystems
@@ -35,104 +35,80 @@ Initialize mono
 Mono path[0] = 'C:/Program Files/Unity/Hub/Editor/2020.2.1f1/Editor/Data/Managed'
 Mono path[1] = 'C:/Program Files/Unity/Hub/Editor/2020.2.1f1/Editor/Data/MonoBleedingEdge/lib/mono/unityjit'
 Mono config path = 'C:/Program Files/Unity/Hub/Editor/2020.2.1f1/Editor/Data/MonoBleedingEdge/etc'
-Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56468
+Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56384
 Begin MonoManager ReloadAssembly
 Registering precompiled unity dll's ...
 Register platform support module: C:/Program Files/Unity/Hub/Editor/2020.2.1f1/Editor/Data/PlaybackEngines/WindowsStandaloneSupport/UnityEditor.WindowsStandalone.Extensions.dll
-Registered in 0.001635 seconds.
+Registered in 0.001665 seconds.
 Native extension for WindowsStandalone target not found
-Refreshing native plugins compatible for Editor in 17.59 ms, found 0 plugins.
+Refreshing native plugins compatible for Editor in 17.76 ms, found 0 plugins.
 Preloading 0 native plugins for Editor in 0.00 ms.
 Invoked RoslynAnalysisRunner static constructor.
 RoslynAnalysisRunner will not be running.
 RoslynAnalysisRunner has terminated.
 Mono: successfully reloaded assembly
-- Completed reload, in  0.874 seconds
+- Completed reload, in  0.835 seconds
 Platform modules already initialized, skipping
 Registering precompiled user dll's ...
-Registered in 0.000691 seconds.
+Registered in 0.001012 seconds.
 Begin MonoManager ReloadAssembly
 Native extension for WindowsStandalone target not found
-Refreshing native plugins compatible for Editor in 0.15 ms, found 0 plugins.
+Refreshing native plugins compatible for Editor in 0.14 ms, found 0 plugins.
 Preloading 0 native plugins for Editor in 0.00 ms.
 Invoked RoslynAnalysisRunner static constructor.
 RoslynAnalysisRunner will not be running.
 RoslynAnalysisRunner has terminated.
 Mono: successfully reloaded assembly
-- Completed reload, in  0.739 seconds
+- Completed reload, in  0.707 seconds
 Platform modules already initialized, skipping
 ========================================================================
 Worker process is ready to serve import requests
-Launched and connected shader compiler UnityShaderCompiler.exe after 0.05 seconds
+Launched and connected shader compiler UnityShaderCompiler.exe after 0.04 seconds
 Refreshing native plugins compatible for Editor in 0.13 ms, found 0 plugins.
 Preloading 0 native plugins for Editor in 0.00 ms.
-Unloading 1006 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 1007 Unused Serialized files (Serialized files now loaded: 0)
 System memory in use before: 49.2 MB.
-System memory in use after: 49.2 MB.
+System memory in use after: 49.3 MB.
 
-Unloading 8 unused Assets to reduce memory usage. Loaded Objects now: 1447.
-Total: 1.607900 ms (FindLiveObjects: 0.106600 ms CreateObjectMapping: 0.034000 ms MarkObjects: 1.385100 ms  DeleteObjects: 0.081500 ms)
-
-========================================================================
-Received Import Request.
-  path: Assets/SmartNS/Documentation.txt
-  artifactKey: Guid(5da515bfcce2e304cbab0d826d56e36d) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
-Start importing Assets/SmartNS/Documentation.txt using Guid(5da515bfcce2e304cbab0d826d56e36d) Importer(815301076,1909f56bfc062723c751e8b465ee728b)  -> (artifact id: '05d8a726b8b199590318b61c1d6165ca') in 0.042146 seconds
-  Import took 0.044082 seconds .
+Unloading 9 unused Assets to reduce memory usage. Loaded Objects now: 1453.
+Total: 1.962300 ms (FindLiveObjects: 0.168900 ms CreateObjectMapping: 0.034100 ms MarkObjects: 1.691200 ms  DeleteObjects: 0.067100 ms)
 
 ========================================================================
 Received Import Request.
-  Time since last request: 157.067090 seconds.
-  path: Assets/SmartNS/Documentation.txt
-  artifactKey: Guid(5da515bfcce2e304cbab0d826d56e36d) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
-Start importing Assets/SmartNS/Documentation.txt using Guid(5da515bfcce2e304cbab0d826d56e36d) Importer(815301076,1909f56bfc062723c751e8b465ee728b)  -> (artifact id: '68c220262f819fb50815f9c50e19fcad') in 0.004872 seconds
-  Import took 0.007327 seconds .
+  path: Assets/SmartNS/Editor/SmartNSChangelog.txt
+  artifactKey: Guid(4f76458a0fbf1a14ba0a13c437bdec76) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/SmartNS/Editor/SmartNSChangelog.txt using Guid(4f76458a0fbf1a14ba0a13c437bdec76) Importer(815301076,1909f56bfc062723c751e8b465ee728b)  -> (artifact id: '2bddc740160c25c3bf3424983ec5ebfb') in 0.039825 seconds
+  Import took 0.041294 seconds .
 
 ========================================================================
 Received Prepare
 Registering precompiled user dll's ...
-Registered in 0.001447 seconds.
+Registered in 0.001003 seconds.
 Begin MonoManager ReloadAssembly
 Native extension for WindowsStandalone target not found
-Refreshing native plugins compatible for Editor in 0.15 ms, found 0 plugins.
+Refreshing native plugins compatible for Editor in 0.16 ms, found 0 plugins.
 Preloading 0 native plugins for Editor in 0.00 ms.
 Invoked RoslynAnalysisRunner static constructor.
 RoslynAnalysisRunner will not be running.
 RoslynAnalysisRunner has terminated.
 Mono: successfully reloaded assembly
-- Completed reload, in  0.739 seconds
+- Completed reload, in  0.693 seconds
 Platform modules already initialized, skipping
-Refreshing native plugins compatible for Editor in 0.15 ms, found 0 plugins.
+Refreshing native plugins compatible for Editor in 0.14 ms, found 0 plugins.
 Preloading 0 native plugins for Editor in 0.00 ms.
 Unloading 1003 Unused Serialized files (Serialized files now loaded: 0)
 System memory in use before: 49.3 MB.
 System memory in use after: 49.4 MB.
 
 Unloading 5 unused Assets to reduce memory usage. Loaded Objects now: 1455.
-Total: 1.398900 ms (FindLiveObjects: 0.142200 ms CreateObjectMapping: 0.028600 ms MarkObjects: 1.212600 ms  DeleteObjects: 0.014400 ms)
+Total: 1.318700 ms (FindLiveObjects: 0.100500 ms CreateObjectMapping: 0.026700 ms MarkObjects: 1.178500 ms  DeleteObjects: 0.012200 ms)
 
 ========================================================================
 Received Import Request.
-  Time since last request: 636.766155 seconds.
-  path: Assets/SmartNS/DoNotExport/CopyFilesToTestDir.bat
-  artifactKey: Guid(65e8aabf4099f9648abfff7b9e5bc34f) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
-Start importing Assets/SmartNS/DoNotExport/CopyFilesToTestDir.bat using Guid(65e8aabf4099f9648abfff7b9e5bc34f) Importer(815301076,1909f56bfc062723c751e8b465ee728b)  -> (artifact id: '5319a592c434c319fbf6b3811005e326') in 0.017132 seconds
-  Import took 0.019449 seconds .
-
-========================================================================
-Received Import Request.
-  Time since last request: 0.395563 seconds.
-  path: Assets/SmartNS/DoNotExport/SmartNS_2.0.1.unitypackage
-  artifactKey: Guid(afa539c73ffd4bf468ee98ed37c01551) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
-Start importing Assets/SmartNS/DoNotExport/SmartNS_2.0.1.unitypackage using Guid(afa539c73ffd4bf468ee98ed37c01551) Importer(815301076,1909f56bfc062723c751e8b465ee728b)  -> (artifact id: '3092152a8d66853d57c6edb3057915c6') in 0.029913 seconds
-  Import took 0.031689 seconds .
-
-========================================================================
-Received Import Request.
-  Time since last request: 68.493358 seconds.
-  path: Assets/SmartNS/Editor/SmartNSSettings.asset
-  artifactKey: Guid(e2f3ad7888928ff4e9570fcefff499d0) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
-Start importing Assets/SmartNS/Editor/SmartNSSettings.asset using Guid(e2f3ad7888928ff4e9570fcefff499d0) Importer(815301076,1909f56bfc062723c751e8b465ee728b)  -> (artifact id: '3a15b3221b7e62ca4819dbbff685c4d4') in 0.009474 seconds
-  Import took 0.011860 seconds .
+  Time since last request: 1457.738402 seconds.
+  path: Assets/SmartNS/Editor/SmartNS.cs
+  artifactKey: Guid(7eb66bfc20082fd4db549fc7696219f1) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/SmartNS/Editor/SmartNS.cs using Guid(7eb66bfc20082fd4db549fc7696219f1) Importer(815301076,1909f56bfc062723c751e8b465ee728b)  -> (artifact id: '4180639e2a16109b9447b1d6f97f5f99') in 0.008842 seconds
+  Import took 0.010681 seconds .
 
 AssetImportWorkerClient::OnTransportError - code=2 error=End of file
